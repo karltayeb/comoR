@@ -1,6 +1,8 @@
-
-prep_out_FDR_wrapper <- function(fit){
-  if(dist=="normal"){
+#' @param fit a fitted mococomo object
+#' @param outputlevel	 Determines amount of output. outputlevel=1 provide simplest output (which should be enough for most applications)
+#' outputlevel= also output the entire mococomo fitted object
+prep_out_FDR_wrapper <- function(fit, outputlevel=1){
+  if(fit$model=="normal"){
     est    <- post_mean_sd.mococomo (fit)
     lfdr   <- get_lfdr_mixnorm(fit)
     qvalue <- cal_qvalue(lfdr)
@@ -13,6 +15,29 @@ prep_out_FDR_wrapper <- function(fit){
                         )
   }
 
+  if(fit$model=="beta"){
+
+    # case where mixture of beta with increasing and decreasing value
+
+      lfdr   <- fit$post_assignment[,1]
+      qvalue <- cal_qvalue(lfdr)
+      if("p"%in% names(fit$data)){
+        resdf <- data.frame(p       = fit$data$p,
+                            lfdr    = lfdr,
+                            qvalue  = qvalue
+        )
+      }
+      if("zscore" %in% names(fit$data) ){
+        resdf <- data.frame(zscore       = fit$data$zscore,
+                            lfdr    = lfdr,
+                            qvalue  = qvalue
+        )
+      }
+
+
+
+  }
+
 
   ### TODO: remove dummy CS
   cs <- lapply( 1:length(fit$logreg_list),
@@ -23,21 +48,35 @@ prep_out_FDR_wrapper <- function(fit){
                           function(k)
                             fit$logreg_list[[k]]$params$alpha*fit$logreg_list[[k]]$params$mu
                          )
+  if(outputlevel==1){
+    out <- list(result =resdf,
+                cs=cs,
+                fitted_effect)
+  }
+  if(outputlevel==2){
+    out <- list(result =resdf,
+                cs=cs,
+                fitted_effect,
+                full_obj = fit)
+  }
+  return(out)
 
-  out <- list(result =resdf,
-              cs=cs,
-              fitted_effect)
 }
 
 
 
 get_lfdr_mixnorm <- function(fit){
   tt1 <-  fit$post_assignment[,1]* dnorm( fit$data$betahat, mean=0, sd= fit$data$se )
-  tt2 <-    Reduce("+",lapply( 2: ncol(fit$post_assignment),
-                               function(k)  fit$post_assignment[,k]*
-                                            dnorm( fit$data$betahat,
-                                                   mean=0,
-                                                   sd= sqrt( fit$data$se^2+ fit$f_list[[k]]$var ) )))
+  tt2 <-    Reduce("+",
+            lapply( 2: ncol(fit$post_assignment),
+                   function(k)
+                   fit$post_assignment[,k]*
+                   dnorm( fit$data$betahat,
+                          mean=0,
+                          sd= sqrt( fit$data$se^2+ fit$f_list[[k]]$var )
+                          )
+                   )
+            )
   out <- tt1/(tt1+tt2)
 
   return(out)

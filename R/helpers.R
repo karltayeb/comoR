@@ -114,12 +114,13 @@ get_all_cs <- function(fit, requested_coverage = 0.95) {
 #' @param betahat numeric, vector of regression coefficients  list of containing the following element see
 #' @param se numeric, corresponding standard error
 #' @param p numeric observed p-values
+#' @param zscore numeric observed z-scores
 #' @param maxiter numeric, maximum numerous of iteration set to 100 by defaults
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
 #' @export
 #' @example
 #' see \link{\code{fit.mococomo}}
-set_data_mococomo <- function(betahat, se, p, X, ...) {
+set_data_mococomo <- function(betahat, se, p,zscore, X, ...) {
   if (!is.numeric(X)) {
     stop("X should be numercial vector")
   }
@@ -164,7 +165,22 @@ set_data_mococomo <- function(betahat, se, p, X, ...) {
     )
     class(dat) <- c("beta", "data_mococomo")
   }
+  if (!missing(zscore)) {
+    if (!is.numeric(zscore)) {
+      stop("zscore should be numercial vector")
+    }
+    if (!(length(zscore) == nrow(X)) == 1) {
+      stop(" The number of lines in X should be equal to the number of entries in p ")
+    }
 
+    dat <- list(
+      p = pnorm(zscore),
+      se = rep(1, length(zscore)),
+      X = X,
+      zscore=zscore
+    )
+    class(dat) <- c("beta", "data_mococomo")
+  }
 
   return(dat)
 }

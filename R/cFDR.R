@@ -1,7 +1,8 @@
 #'@title Main FDR function
 #'@description Main function gathering all the routines for different FDR estimation procedures
 
-
+#' @param outputlevel	 Determines amount of output. outputlevel=1 provide simplest output (which should be enough for most applications)
+#' outputlevel= also output the entire mococomo fitted object
 
 #'@details if the user specifies (betahat, se) then cFDR will fit an covariate
 #' moderated ash model. If the user specifies p-value, then cFDR fits a mixture of betas
@@ -22,7 +23,8 @@ cFDR <- function( betahat,
                   tol       = 1e-3,
                   max_class = 10,
                   mult      = 2,
-                  upper     = FALSE
+                  upper     = FALSE,
+                  outputlevel = 1
 )
 {
   if( !(missing(betahat))&missing(se)){
@@ -34,27 +36,27 @@ cFDR <- function( betahat,
 
 
   if( !missing(betahat)& !missing( se)){
-    dist <- "normal"
+    model <- "normal"
     data <- set_data_mococomo(betahat  = betahat,
                               X = X,
                               se=  se)
     #fit mococomo model
   }
   if(!missing(pvalue)){
-    dist <- "beta"
+    model <- "beta"
     data <- set_data_mococomo(p = pvalue,
                               X = X)
   }
 
   if(!missing(zscore)){
-    dist <- "beta"
-    data <- set_data_mococomo(p = pnorm(zscore), #using U value as in the ZAP paper
+    model <- "beta"
+    data <- set_data_mococomo(zscore = zscore, #TODO using U value as in the ZAP paper
                               X = X)
     upper =TRUE
   }
 
   fit =  fit.mococomo(data,
-                      dist      = dist,
+                      model      = model,
                       maxiter   = maxiter,
                       tol       = tol,
                       max_class = max_class,
@@ -62,7 +64,8 @@ cFDR <- function( betahat,
                       upper     = upper)
 
 
-  out <- prep_out_FDR_wrapper (fit)
+  out <- prep_out_FDR_wrapper (fit=fit,
+                               outputlevel= outputlevel)
 
 
   return( out)

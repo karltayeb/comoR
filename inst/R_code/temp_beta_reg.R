@@ -15,7 +15,7 @@ library(comoR)
 #working init
  fit <- init.mococomo(data,
                       max_class = max_class,
-                      dist= "beta",
+                      model= "beta",
                       mult   = mult,
                       upper     = upper
                       )
@@ -45,21 +45,42 @@ tfit <- fit.mococomo  (data )
 tfit$elbo
 tfit$f_list
 #works with two distribution (left and right)
-tfit <- fit.mococomo  (data,dist="beta",
+tfit <- fit.mococomo  (data,model="beta",
                        upper=TRUE)
 
 ## We should see almost no weight on the upper distribution
 
  tfit$elbo
  tfit$f_list
-#works with a signal left distribution
-tfit <- fit.mococomo  (data,
-                       dist="beta",
-                       upper=FALSE)
 
+ tfit$post_assignment
+
+
+
+ #works with a signal left distribution
+tfit <- fit.mococomo  (data,
+                       model="beta",
+                       upper=FALSE)
+plot(data$p, tfit$post_assignment[,1]  )
 tfit$elbo
 tfit$f_list
-tfit$logreg_list
 
 str(tfit)
 
+
+
+
+res <-   cFDR( pvalue =    data$p,
+               X       = data$X)
+res$result
+plot(res$result$lfdr, res$result$p  )
+
+sim  <- sim_mococomo(n=1000)
+#preparing the data
+data <- set_data_mococomo(zscore  = sim$betahat/sim$se,
+                          X = sim$X  )
+
+res <-   cFDR( pvalue =    data$p,
+               X       = data$X)
+res$result
+plot(res$result$lfdr, res$result$p  )

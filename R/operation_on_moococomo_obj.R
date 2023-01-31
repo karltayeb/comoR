@@ -284,7 +284,7 @@ iter.mococomo <- function(fit, update_assignment = T, update_logreg = T) {
 
     # updates posterior assignments
     if (update_assignment) {
-      fit$post_assignment <- compute_posterior_assignment(fit, log = F)
+      fit$post_assignment <- compute_posterior_assignment(fit, log = F) #TODO add penalty
       fit$N <- .expected_trials(fit$post_assignment)
     }
 

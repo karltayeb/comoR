@@ -111,7 +111,7 @@ compute_data_loglikelihood.mococomo_beta <- function(fit,data) {
                                 return(logp)
                               } ))
     if( !is.null(fit$upper_l)){
-           data_loglik <- cbind(lw_df, up_df)
+           data_loglik <- cbind(lw_df, up_df)#ensure that first component is the null dist
     }else{
            data_loglik <- lw_df
     }

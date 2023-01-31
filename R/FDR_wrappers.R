@@ -94,4 +94,37 @@ cal_qvalue <- function(lfdr)
 }
 
 
-assesor.beta <- function(fit){}
+assesor.mococomo_beta <- function(fit){
+
+ up <- 1- apply(fit$post_assignment[,-1],1,sum)
+low <-  up + apply(compute_data_loglikelihood(fit, fit$data)[,-1],1,sum)
+
+out <- up/low
+
+return( out)
+}
+
+
+if( !is.null(fit$upper_l)){
+  up_df <- do.call( cbind,
+                    lapply( 1:length(fit$f_list$alpha),
+                            function(i){
+                              logp <- dbeta( data$p,
+                                             shape1 = fit$f_list$alpha[[i]],
+                                             shape2 = 1
+                              )
+                              logp <- .clamp(logp, 100, -100)
+                              return(logp)
+                            } ))
+}
+
+lw_df <- do.call( cbind,
+                  lapply( 1:length(fit$f_list$beta),
+                          function(i){
+                            logp <- dbeta( data$p,
+                                           shape1 =1,
+                                           shape2 =  fit$f_list$beta[[i]]
+                            )
+                            logp <- .clamp(logp, 100, -100)
+                            return(logp)
+                          } ))

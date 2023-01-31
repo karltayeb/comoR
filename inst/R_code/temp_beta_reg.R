@@ -1,0 +1,65 @@
+set.seed(1)
+library(comoR)
+ sim  <- logisticsusie:::sim_mococomo_beta(n=100)
+ #preparing the data
+ data <- set_data_mococomo(p = sim$p,
+                            X = sim$X)
+ #fit mococomo model
+ maxiter   = 100
+ tol       = 1e-3
+ max_class = 10
+ mult      = 2
+ upper     = TRUE
+
+
+#working init
+ fit <- init.mococomo(data,
+                      max_class = max_class,
+                      dist= "beta",
+                      mult   = mult,
+                      upper     = upper
+                      )
+
+ str(fit)
+ #working elbo
+fit$elbo <- compute_elbo.mococomo(fit)
+
+fit$elbo <- compute_elbo2.mococomo(fit)
+
+fit$elbo <- compute_elbo3.mococomo(fit)
+
+##working exemple
+for (i in 1:maxiter) {
+  fit <- iter.mococomo(fit, is.even(i), is.odd(i))
+  fit$elbo <- c(fit$elbo, compute_elbo3.mococomo(fit))
+
+  # print(paste('asgn:', is.even(i), 'logreg:', is.odd(i), 'elbo: ', tail(fit$elbo, 1)))
+  if (.converged(fit, tol)) {
+    break
+  }
+}
+
+#works with two distribution (left and right)
+tfit <- fit.mococomo  (data )
+
+tfit$elbo
+tfit$f_list
+#works with two distribution (left and right)
+tfit <- fit.mococomo  (data,dist="beta",
+                       upper=TRUE)
+
+## We should see almost no weight on the upper distribution
+
+ tfit$elbo
+ tfit$f_list
+#works with a signal left distribution
+tfit <- fit.mococomo  (data,
+                       dist="beta",
+                       upper=FALSE)
+
+tfit$elbo
+tfit$f_list
+tfit$logreg_list
+
+str(tfit)
+

@@ -154,6 +154,9 @@ set_data_mococomo <- function(betahat, se, p, X, ...) {
     if (!(length(p) == nrow(X)) == 1) {
       stop(" The number of lines in X should be equal to the number of entries in p ")
     }
+    if( (min(p) <0)| max(p)>1){
+      stop(" the provided p-values are not between 0 and 1")
+    }
     dat <- list(
       p = p,
       se = rep(1, length(p)),

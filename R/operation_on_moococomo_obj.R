@@ -46,7 +46,7 @@ init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,...) {
     fit$f_list          <- f_list
     fit$post_assignment <- Y
     fit$N               <- N
-    fit$dist            <- dist
+    fit$model            <-"normal"
     fit$K               <- length(fit$f_list)
     fit$data            <- data
     class(fit) <- "mococomo_normal"
@@ -103,7 +103,7 @@ init.mococomo.beta <- function(data, max_class, mult = 2,upper=FALSE,...) {
     fit$lower_l         <- lower_l
     fit$post_assignment <- Y
     fit$N               <- N
-    fit$dist            <- dist
+    fit$model            <- "beta"
     fit$K               <- K
     fit$data            <- data
     class(fit)          <- "mococomo_beta"

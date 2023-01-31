@@ -4,8 +4,8 @@
 #' @details Function implementation the mococomo mode
 #'
 #' @param data an object of class data_mococomo  see \link{\code{set_data_mococomo}}
-#' @param dist type of model currently supoorted (normal and beta )
-#' @param maxiter numeric, maximum numerous of itration set to 100 by defaults
+#' @param modeltype of model currently supported (normal and beta )
+#' @param maxiter numeric, maximum numerous of iteration set to 100 by defaults
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
 #' @param upper, logical, set to FALSE by default. Specific to beta distribution.
 #'  If true use a to set of mixture for fitting both end of the of the distribution as in the ZAP paper by Leung and Sunn
@@ -42,7 +42,7 @@
 #' fit <- fit.mococomo(data, maxiter=20)
 
 fit.mococomo <- function(data,
-                         dist      = "normal",
+                         model     = "normal",
                          maxiter   = 100,
                          tol       = 1e-3,
                          max_class = 10,
@@ -53,7 +53,7 @@ fit.mococomo <- function(data,
   {stop("Please provide object of class data_mococomo")}
 
   fit <- init.mococomo(data      = data,
-                       dist      = dist,
+                       model      = model,
                        max_class = max_class,
                        mult      = mult,
                        upper     = upper

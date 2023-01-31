@@ -38,10 +38,11 @@ tt <- ash(data$betahat ,data$se ,outputlevel=3, mixcompdist = "normal")
 plot( res$result$betahat, res$result$PosteriorMean)
 points(tt$result$betahat,tt$result$PosteriorMean, col="green")
 
-plot(res$result$PosteriorMean,tt$result$PosteriorMean)
+plot(res$result$PosteriorMean,tt$result$PosteriorMean, xlab = "como postmean", ylab = "ashr postmean")
 
-plot(res$full_obj$post_assignment[,5],
-     tt$result$lfdr)
+plot(res$result$lfdr,
+     tt$result$lfdr, xlab = "como lfdr", ylab = "ashr lfdr")
+
 abline(a=0,b=1)
 
 param_var <- Reduce("c", lapply(1: length(res$full_obj$f_list), function(k)res$full_obj$f_list[[k]]$var))
@@ -68,7 +69,7 @@ for ( i in 1:length(data$betahat)){
   post_asign[[i]] <-  temp
 }
 post_asign <- do.call(rbind, post_asign)
-plot( post_asign[,1], tt$result$lfdr)
+plot( post_asign[,1], tt$result$lfdr )
 
 
 cor(post_asign)

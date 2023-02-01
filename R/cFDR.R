@@ -24,7 +24,9 @@ cFDR <- function( betahat,
                   max_class = 10,
                   mult      = 2,
                   upper     = FALSE,
-                  outputlevel = 1
+                  outputlevel = 1,
+                  n_sim= 50000,
+                  alpha
 )
 {
   if( !(missing(betahat))&missing(se)){

@@ -1,6 +1,6 @@
 set.seed(1)
 library(comoR)
- sim  <- logisticsusie:::sim_mococomo_beta(n=100)
+ sim  <- logisticsusie:::sim_mococomo_beta(n=1000)
  #preparing the data
  data <- set_data_mococomo(p = sim$p,
                             X = sim$X)

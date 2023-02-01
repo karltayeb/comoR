@@ -4,14 +4,14 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of logisticsusie is to ...
+comoR implements covariate moderated FDR methods for high dimensional side information 
 
 ## Installation
 
 You can install the development version of logisticsusie like so:
 
 ``` r
-devtools::install_github('karltayeb/logisticsusie')
+devtools::install_github('karltayeb/comoR')
 ```
 
 ## Example
@@ -19,7 +19,7 @@ devtools::install_github('karltayeb/logisticsusie')
 This is a basic example which shows you how to solve a common problem:
 
 ``` r
-library(logisticsusie)
+library(comoR)
 ## basic example code
 ```
 

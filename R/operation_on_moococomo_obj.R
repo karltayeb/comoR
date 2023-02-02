@@ -174,7 +174,7 @@ compute_assignment_jj_bound.mococomo <- function(fit) {
   pen <- c(max(c(fit$nullweight-1,0)), rep( 0, K-2)) # if fit$nullweight-1 <0 leads to non increasing ELBO
   f <- function(xi, xb) {
     tmp <- cumsum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb) + xb+pen
-    tmpK <- sum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb )  #TODO add penalty here
+    tmpK <- sum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb )
     jj <- c(tmp, tmpK)
     return(jj)
   }

@@ -65,7 +65,21 @@ tfit <- fit.mococomo  (data,
                        model="beta",
                        upper=FALSE)
 plot(data$p, tfit$post_assignment[,1]  )
-tfit$elbo
+
+
+
+tfit <- fit.mococomo  (data,
+                       model="beta",
+                       upper=TRUE, nullweight = 4 , tol=0.1)
+plot(data$p, tfit$post_assignment[,1]  )
+
+
+plot(tfit$elbo)
+
+
+
+plot(log10(diff(tfit$elbo)))
+
 tfit$f_list
 
 str(tfit)

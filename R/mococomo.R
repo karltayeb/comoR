@@ -9,7 +9,7 @@
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
 #' @param upper, logical, set to FALSE by default. Specific to beta distribution.
 #'  If true use a to set of mixture for fitting both end of the of the distribution as in the ZAP paper by Leung and Sunn
-#' @parma nullweight  numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+#' @parma nullweight  numeric value for penalizing likelihood at point mass 0/null component (should be larger than  1, 1 corresponds to no penalty , 2 corresponds to considering 1 individual "being null" and so on)
 #' (usefull in small sample size)
 #' @export
 #' @example
@@ -43,6 +43,8 @@
 #'
 #' fit <- fit.mococomo(data, maxiter=20)
 
+
+# TODO modulate L and decreasing number of CS if obviously dummy cs
 fit.mococomo <- function(data,
                          model     = "normal",
                          maxiter   = 100,
@@ -55,7 +57,7 @@ fit.mococomo <- function(data,
   if("data_mococomo"%!in% class(data))
   {stop("Please provide object of class data_mococomo")}
   if(missing( nullweight)){
-    nullweight <- 10
+    nullweight <- 4
   }
 
   fit <- init.mococomo(data       = data,

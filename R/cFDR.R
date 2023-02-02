@@ -27,7 +27,8 @@ cFDR <- function( betahat,
                   outputlevel = 1,
                   n_sim= 50000,
                   alpha,
-                  nullweight=2
+                  nullweight=4,
+                  verbose=TRUE
 )
 {
   if( !(missing(betahat))&missing(se)){
@@ -58,6 +59,9 @@ cFDR <- function( betahat,
     upper =TRUE
   }
 
+  if(verbose){
+    print( "Fitting como model")
+  }
   fit =  fit.mococomo(data,
                       model      = model,
                       maxiter   = maxiter,
@@ -67,9 +71,12 @@ cFDR <- function( betahat,
                       upper     = upper,
                       nullweight = nullweight)
 
-
+if(verbose){
+  print( "Model fitting done, performing FDR computation")
+}
   out <- prep_out_FDR_wrapper (fit=fit,
-                               outputlevel= outputlevel)
+                               outputlevel= outputlevel,
+                               n_sim = n_sim)
 
 
   return( out)

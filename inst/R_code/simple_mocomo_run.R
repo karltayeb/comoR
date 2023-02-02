@@ -1,6 +1,6 @@
 set.seed(1)
 
-sim  <- sim_mococomo(n=100)
+sim  <- sim_mococomo(n=1000)
 #preparing the data
 data <- set_data_mococomo(betahat  = sim$betahat,
                           X = sim$X,
@@ -26,7 +26,7 @@ str(fit$logreg_list)
  #works with two distribution (left and right)
   tfit <- fit.mococomo  (data,nullweight = 4 )
 
-  tfit2 <- fit.mococomo  (data,nullweight = 1 )
+  tfit2 <- fit.mococomo  (data,nullweight = 1.1 )
 
 plot(tfit$post_assignment[,1], tfit2$post_assignment[,1])
 
@@ -46,6 +46,8 @@ tt <- ash(data$betahat ,data$se ,outputlevel=3, mixcompdist = "normal")
 plot(res$result$lfdr,
      tt$result$lfdr, xlab = "como lfdr", ylab = "ashr lfdr")
 abline(a=0,b=1)
+abline(v=0.05 )
+abline(h=0.05 )
 plot( res$result$betahat, res$result$PosteriorMean)
 points(tt$result$betahat,tt$result$PosteriorMean, col="green")
 

@@ -1,6 +1,6 @@
 set.seed(1)
 
-sim  <- sim_mococomo(n=1000)
+sim  <- sim_mococomo(n=100)
 #preparing the data
 data <- set_data_mococomo(betahat  = sim$betahat,
                           X = sim$X,
@@ -10,38 +10,47 @@ maxiter   = 100
 tol       = 1e-3
 max_class = 10
 mult      = 2
-
+nullweight     =10
 
 #working init
 fit <- init.mococomo(data,
                      max_class = max_class,
                      mult   = mult,
                      upper     = upper
+
 )
 str(fit$logreg_list)
   compute_elbo.mococomo(fit)
 
 
  #works with two distribution (left and right)
-  tfit <- fit.mococomo  (data )
+  tfit <- fit.mococomo  (data,nullweight = 4 )
 
-  tfit$elbo
-  tfit$f_list
+  tfit2 <- fit.mococomo  (data,nullweight = 1 )
+
+plot(tfit$post_assignment[,1], tfit2$post_assignment[,1])
+
+plot(tfit$post_assignment[,1], tfit$post_assignment[,2])
+
+plot(tfit$data$betahat/tfit$data$se,tfit$post_assignment[,1])
+ plot(tfit$post_assignment[,1],
+     tt$result$PosteriorMean, xlab = "como lfdr", ylab = "ashr lfdr")
 
 
 res <-   cFDR( betahat = data$betahat,
         se      = data$se,
-        X       = data$X)
-
+        X       = data$X, nullweight=4)
+library(ashr)
 tt <- ash(data$betahat ,data$se ,outputlevel=3, mixcompdist = "normal")
 
+plot(res$result$lfdr,
+     tt$result$lfdr, xlab = "como lfdr", ylab = "ashr lfdr")
+abline(a=0,b=1)
 plot( res$result$betahat, res$result$PosteriorMean)
 points(tt$result$betahat,tt$result$PosteriorMean, col="green")
 
 plot(res$result$PosteriorMean,tt$result$PosteriorMean, xlab = "como postmean", ylab = "ashr postmean")
 
-plot(res$result$lfdr,
-     tt$result$lfdr, xlab = "como lfdr", ylab = "ashr lfdr")
 
 abline(a=0,b=1)
 

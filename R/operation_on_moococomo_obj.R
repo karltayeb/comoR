@@ -1,7 +1,7 @@
 
 
 
-init.mococomo <- function (data, max_class, mult = 2,upper=FALSE, ...)
+init.mococomo <- function (data, max_class, mult = 2,upper=FALSE,nullweight, ...)
   UseMethod("init.mococomo")
 
 #' @rdname init.mococomo
@@ -13,8 +13,10 @@ init.mococomo <- function (data, max_class, mult = 2,upper=FALSE, ...)
 #'
 #' @export
 #'
-init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,...) {
-
+init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,nullweight,...) {
+  if(missing( nullweight)){
+    nullweight <- 10
+  }
     data$X2 <- data$X^2
 
     # TODO check input data has X, Z, betahat, se, etc.
@@ -49,6 +51,7 @@ init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,...) {
     fit$model            <-"normal"
     fit$K               <- length(fit$f_list)
     fit$data            <- data
+    fit$nullweight      <- nullweight
     class(fit) <- "mococomo_normal"
     # only need to do this once when component probabilities are fixed
     fit$data_loglik <- compute_data_loglikelihood(fit,data)
@@ -66,7 +69,11 @@ init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,...) {
 #'
 #' @export
 #'
-init.mococomo.beta <- function(data, max_class, mult = 2,upper=FALSE,...) {
+init.mococomo.beta <- function(data, max_class, mult = 2,upper=FALSE,nullweight,...) {
+
+  if(missing( nullweight)){
+    nullweight <- 10
+  }
 # different set up depending on fitting p values or fitting z-scores
     #need to polish the upper limit for alpha and beta, now set as 100
     if(upper){ #mixture to fit component close to 1
@@ -106,6 +113,7 @@ init.mococomo.beta <- function(data, max_class, mult = 2,upper=FALSE,...) {
     fit$model            <- "beta"
     fit$K               <- K
     fit$data            <- data
+    fit$nullweight      <- nullweight
     class(fit)          <- "mococomo_beta"
     # only need to do this once when component probabilities are fixed
     fit$data_loglik     <- compute_data_loglikelihood(fit,data)
@@ -163,9 +171,10 @@ compute_assignment_jj_bound.mococomo <- function(fit) {
 
   Xi <- do.call(cbind, purrr::map(fit$logreg_list, ~ purrr::pluck(.x, "params", "xi"))) # N x K-1
 
+  pen <- c(max(c(fit$nullweight-1,0)), rep( 0, K-2)) # if fit$nullweight-1 <0 leads to non increasing ELBO
   f <- function(xi, xb) {
-    tmp <- cumsum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb) + xb
-    tmpK <- sum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb)
+    tmp <- cumsum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb) + xb+pen
+    tmpK <- sum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb )  #TODO add penalty here
     jj <- c(tmp, tmpK)
     return(jj)
   }
@@ -275,7 +284,7 @@ compute_elbo.mococomo <- function(fit) {
 #' @param Y an N x K matrix of assignment probabilities
 .expected_trials <- function(Y) {
   cumY <- do.call(rbind, apply(Y, 1, cumsum, simplify = F))
-  N <- 1. - cumY + Y
+  N <- 1. - cumY + Y #TODO add penalty here
 }
 
 

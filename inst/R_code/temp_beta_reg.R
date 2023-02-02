@@ -21,6 +21,8 @@ library(comoR)
                       )
 
  str(fit)
+
+ fit$N
  #working elbo
 fit$elbo <- compute_elbo.mococomo(fit)
 
@@ -44,6 +46,7 @@ tfit <- fit.mococomo  (data )
 
 tfit$elbo
 tfit$f_list
+tfit$N
 #works with two distribution (left and right)
 tfit <- fit.mococomo  (data,model="beta",
                        upper=TRUE)

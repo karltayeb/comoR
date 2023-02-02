@@ -26,7 +26,8 @@ cFDR <- function( betahat,
                   upper     = FALSE,
                   outputlevel = 1,
                   n_sim= 50000,
-                  alpha
+                  alpha,
+                  nullweight=2
 )
 {
   if( !(missing(betahat))&missing(se)){
@@ -63,7 +64,8 @@ cFDR <- function( betahat,
                       tol       = tol,
                       max_class = max_class,
                       mult      = mult,
-                      upper     = upper)
+                      upper     = upper,
+                      nullweight = nullweight)
 
 
   out <- prep_out_FDR_wrapper (fit=fit,

@@ -9,6 +9,8 @@
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
 #' @param upper, logical, set to FALSE by default. Specific to beta distribution.
 #'  If true use a to set of mixture for fitting both end of the of the distribution as in the ZAP paper by Leung and Sunn
+#' @parma nullweight  numeric value for penalizing likelihood at point mass 0 (should be between 0 and 1)
+#' (usefull in small sample size)
 #' @export
 #' @example
 #' #Simulate data under the mococomo model
@@ -47,16 +49,21 @@ fit.mococomo <- function(data,
                          tol       = 1e-3,
                          max_class = 10,
                          mult      = 2,
-                         upper     = FALSE) {
+                         upper     = FALSE,
+                         nullweight ) {
 
   if("data_mococomo"%!in% class(data))
   {stop("Please provide object of class data_mococomo")}
+  if(missing( nullweight)){
+    nullweight <- 10
+  }
 
-  fit <- init.mococomo(data      = data,
+  fit <- init.mococomo(data       = data,
                        model      = model,
-                       max_class = max_class,
-                       mult      = mult,
-                       upper     = upper
+                       max_class  = max_class,
+                       mult       = mult,
+                       upper      = upper,
+                       nullweight = nullweight
                        )
 
   fit$elbo <- compute_elbo.mococomo(fit)

@@ -84,7 +84,7 @@ compute_data_loglikelihood.mococomo_normal <- function(fit,data) {
 #'
 #'
 #' @export
-compute_data_loglikelihood.mococomo_beta <- function(fit,data) {
+compute_data_loglikelihood.mococomo_beta <- function(fit,data,pen=TRUE) {
 
 
     if( !is.null(fit$upper_l)){
@@ -115,6 +115,12 @@ compute_data_loglikelihood.mococomo_beta <- function(fit,data) {
     }else{
            data_loglik <- lw_df
     }
+
+    if(pen){
+      L <- rbind(c(0, rep(  -1e+30,(ncol(data_loglik)-1)  )),#adding penalty line
+                 data_loglik)
+      #data_loglik
+    }#TODO make sure that to remove added penalty
     return(data_loglik)
 
 

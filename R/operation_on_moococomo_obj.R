@@ -17,46 +17,46 @@ init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,nullweigh
   if(missing( nullweight)){
     nullweight <- 10
   }
-    data$X2 <- data$X^2
+  data$X2 <- data$X^2
 
-    # TODO check input data has X, Z, betahat, se, etc.
-    #### We can force the user to input data as being from a certain  class generarted by a set_data  function
-    # w
-    # scale mixture of normals w/ zero mean-- TODO: make this initializable
+  # TODO check input data has X, Z, betahat, se, etc.
+  #### We can force the user to input data as being from a certain  class generarted by a set_data  function
+  # w
+  # scale mixture of normals w/ zero mean-- TODO: make this initializable
 
 
-    #WIlliam to check here
-    scales <- autoselect.mococomo(data)
-    # scales <- cumprod(c(1., rep(sqrt(2), 5)))
-    f_list <- purrr::map(scales, ~ normal_component(mu = 0, var = .x^2))
+  #WIlliam to check here
+  scales <- autoselect.mococomo(data)
+  # scales <- cumprod(c(1., rep(sqrt(2), 5)))
+  f_list <- purrr::map(scales, ~ normal_component(mu = 0, var = .x^2))
 
-    K <- length(scales)
-    p <- ncol(data$X)
-    n <- nrow(data$X)
+  K <- length(scales)
+  p <- ncol(data$X)
+  n <- nrow(data$X)
 
-    # initialize posterior assignment
-    Y <- matrix(rep(1, K * n) / K, nrow = n)
-    N <- .expected_trials(Y)
+  # initialize posterior assignment
+  Y <- matrix(rep(1, K * n) / K, nrow = n)
+  N <- .expected_trials(Y)
 
-    data$y <- Y
-    data$N <- N
-    if(is.null(data$Z))
-    { data$Z <- matrix(1, nrow= nrow(data$X), ncol=1) }
+  data$y <- Y
+  data$N <- N
+  if(is.null(data$Z))
+  { data$Z <- matrix(1, nrow= nrow(data$X), ncol=1) }
 
-    # it's multinational regression + some other stuff
-    fit                 <- init.mnsusie(data, from_init_moco=TRUE)
-    fit$f_list          <- f_list
-    fit$post_assignment <- Y
-    fit$N               <- N
-    fit$model            <-"normal"
-    fit$K               <- length(fit$f_list)
-    fit$data            <- data
-    fit$nullweight      <- nullweight
-    class(fit) <- "mococomo_normal"
-    # only need to do this once when component probabilities are fixed
-    fit$data_loglik <- compute_data_loglikelihood(fit,data)
+  # it's multinational regression + some other stuff
+  fit                 <- init.mnsusie(data, from_init_moco=TRUE)
+  fit$f_list          <- f_list
+  fit$post_assignment <- Y
+  fit$N               <- N
+  fit$model            <-"normal"
+  fit$K               <- length(fit$f_list)
+  fit$data            <- data
+  fit$nullweight      <- nullweight
+  class(fit) <- "mococomo_normal"
+  # only need to do this once when component probabilities are fixed
+  fit$data_loglik <- compute_data_loglikelihood(fit,data)
 
-    return(fit)
+  return(fit)
 }
 
 
@@ -74,51 +74,51 @@ init.mococomo.beta <- function(data, max_class, mult = 2,upper=FALSE,nullweight,
   if(missing( nullweight)){
     nullweight <- 10
   }
-# different set up depending on fitting p values or fitting z-scores
-    #need to polish the upper limit for alpha and beta, now set as 100
-    if(upper){ #mixture to fit component close to 1
-      alpha   <- seq(1.1,100,length.out=max_class)
-      upper_l <- list( alpha=alpha, beta=1)
-    }else{
-      alpha   = 1
-      upper_l = NULL
-    }
-    #mixture to fit component close to 0
-    beta    <- c(1,seq(1.1,100,length.out=max_class)) #contains null component!!!
-    lower_l <-list( alpha=1, beta=beta)
-    f_list  <- beta_component(alpha = alpha,
-                              beta  = beta
-                             )
-    K      <- length(upper_l[[1]])+length(lower_l[[2]])
-    p      <- ncol(data$X)
-    n      <- nrow(data$X)
+  # different set up depending on fitting p values or fitting z-scores
+  #need to polish the upper limit for alpha and beta, now set as 100
+  if(upper){ #mixture to fit component close to 1
+    alpha   <- seq(1.1,100,length.out=max_class)
+    upper_l <- list( alpha=alpha, beta=1)
+  }else{
+    alpha   = 1
+    upper_l = NULL
+  }
+  #mixture to fit component close to 0
+  beta    <- c(1,seq(1.1,100,length.out=max_class)) #contains null component!!!
+  lower_l <-list( alpha=1, beta=beta)
+  f_list  <- beta_component(alpha = alpha,
+                            beta  = beta
+  )
+  K      <- length(upper_l[[1]])+length(lower_l[[2]])
+  p      <- ncol(data$X)
+  n      <- nrow(data$X)
 
-    # initialize posterior assignment
-    Y <- matrix(rep(1, K * n) / K, nrow = n)
-    N <- .expected_trials(Y)
-    data$y <- Y
-    data$N <- N
+  # initialize posterior assignment
+  Y <- matrix(rep(1, K * n) / K, nrow = n)
+  N <- .expected_trials(Y)
+  data$y <- Y
+  data$N <- N
 
-    data$X2 <- data$X^2
-    if(is.null(data$Z))
-    { data$Z <- matrix(1, nrow= nrow(data$X), ncol=1) }
+  data$X2 <- data$X^2
+  if(is.null(data$Z))
+  { data$Z <- matrix(1, nrow= nrow(data$X), ncol=1) }
 
-    # it's multinational regression + some other stuff
-    fit                 <- init.mnsusie(data, from_init_moco=TRUE)
-    fit$f_list          <- f_list
-    fit$upper_l         <- upper_l
-    fit$lower_l         <- lower_l
-    fit$post_assignment <- Y
-    fit$N               <- N
-    fit$model            <- "beta"
-    fit$K               <- K
-    fit$data            <- data
-    fit$nullweight      <- nullweight
-    class(fit)          <- "mococomo_beta"
-    # only need to do this once when component probabilities are fixed
-    fit$data_loglik     <- compute_data_loglikelihood(fit,data)
+  # it's multinational regression + some other stuff
+  fit                 <- init.mnsusie(data, from_init_moco=TRUE)
+  fit$f_list          <- f_list
+  fit$upper_l         <- upper_l
+  fit$lower_l         <- lower_l
+  fit$post_assignment <- Y
+  fit$N               <- N
+  fit$model            <- "beta"
+  fit$K               <- K
+  fit$data            <- data
+  fit$nullweight      <- nullweight
+  class(fit)          <- "mococomo_beta"
+  # only need to do this once when component probabilities are fixed
+  fit$data_loglik     <- compute_data_loglikelihood(fit,data)
 
-    return(fit)
+  return(fit)
 
 }
 #' Compute Expected Assignment Log Likelihood
@@ -127,8 +127,8 @@ compute_assignment_loglikelihood.mococomo <- function(fit, normalize = TRUE) {
   K <- fit$K
   Xb <- do.call(cbind, lapply( 1: length(fit$logreg_list),
                                function (k)  compute_Xb.binsusie(fit,k=k)
-                              )
-                )
+  )
+  )
 
   Xbcum <- do.call(rbind, apply(Xb, 1, cumsum, simplify = F))
   kln2 <- seq(K - 1) * log(2)
@@ -138,13 +138,13 @@ compute_assignment_loglikelihood.mococomo <- function(fit, normalize = TRUE) {
   if (normalize) {
     Xb2 <- do.call(cbind, lapply( 1: length(fit$logreg_list),
                                   function (k)  compute_Xb2.binsusie(fit,k=k)
-                                 )
-                    )  # N x K - 1
+    )
+    )  # N x K - 1
     omega <- do.call(cbind, lapply( 1: length(fit$logreg_list),
                                     function (k)  compute_omega(fit ,
                                                                 k =k)
-                                    )
-                      )  # N x K - 1
+    )
+    )  # N x K - 1
     C <- -0.5 * rowSums(Xb2 * omega)
   }
 
@@ -166,8 +166,8 @@ compute_assignment_jj_bound.mococomo <- function(fit) {
   Xb <- do.call(cbind,
                 lapply(1:length(fit$logreg_list),
                        function( k) compute_Xb.binsusie(fit,k)
-                       )
-                ) # N x K-1
+                )
+  ) # N x K-1
 
   Xi <- do.call(cbind, purrr::map(fit$logreg_list, ~ purrr::pluck(.x, "params", "xi"))) # N x K-1
 
@@ -215,8 +215,8 @@ compute_elbo3.mococomo <- function(fit) {
 
   kl_susie <- Reduce("+", lapply(1:length(fit$logreg_list),
                                  function(k) compute_kl.binsusie(fit,k)
-                                 )
-                    )
+  )
+  )
 
   assignment_entropy <- sum(apply(post_assignment, 1, categorical_entropy))
 
@@ -289,26 +289,26 @@ compute_elbo.mococomo <- function(fit) {
 
 
 iter.mococomo <- function(fit, update_assignment = T, update_logreg = T) {
-    K <- fit$K
+  K <- fit$K
 
-    # updates posterior assignments
-    if (update_assignment) {
-      fit$post_assignment <- compute_posterior_assignment(fit, log = F) #TODO add penalty
-      fit$N <- .expected_trials(fit$post_assignment)
-    }
-
-    # pass assignments to logreg
-    for (k in seq(K - 1)) {
-      fit$logreg_list[[k]]$data$y <- fit$post_assignment[, k]
-      fit$logreg_list[[k]]$data$N <- fit$N[, k]
-    }
-
-    if (update_logreg) {
-      fit <- iter.mnsusie(fit, from_init_moco = TRUE)
-    }
-
-    return(fit)
+  # updates posterior assignments
+  if (update_assignment) {
+    fit$post_assignment <- compute_posterior_assignment(fit, log = F) #TODO add penalty
+    fit$N <- .expected_trials(fit$post_assignment)
   }
+
+  # pass assignments to logreg
+  for (k in seq(K - 1)) {
+    fit$logreg_list[[k]]$data$y <- fit$post_assignment[, k]
+    fit$logreg_list[[k]]$data$N <- fit$N[, k]
+  }
+
+  if (update_logreg) {
+    fit <- iter.mnsusie(fit, from_init_moco = TRUE)
+  }
+
+  return(fit)
+}
 
 
 
@@ -466,8 +466,8 @@ get_fdr <- function(fit) {
     2:ncol(fit$post_assignment),
     function(k) {
       fit$post_assignment[, k] * dnorm(fit$data$betahat,
-        mean = 0,
-        sd = sqrt(fit$data$se^2 + fit$f_list[[k]]$var)
+                                       mean = 0,
+                                       sd = sqrt(fit$data$se^2 + fit$f_list[[k]]$var)
       )
     }
   ))

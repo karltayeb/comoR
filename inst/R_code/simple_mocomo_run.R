@@ -16,18 +16,26 @@ nullweight     =10
 fit <- init.mococomo(data,
                      max_class = max_class,
                      mult   = mult,
-                     upper     = upper
+                     upper     = upper,
+                     nullweight = 10
 
 )
 str(fit$logreg_list)
   compute_elbo.mococomo(fit)
 
 
+
+
+ fit <- iter.mococomo(fit)
+
+
  #works with two distribution (left and right)
   tfit <- fit.mococomo  (data,nullweight = 4 )
 
-  tfit2 <- fit.mococomo  (data,nullweight = 1.1 )
-
+  tfit$elbo
+  tfit2 <- fit.mococomo  (data,nullweight = 10 )
+  tfit$elbo
+  tfit2$elbo
 plot(tfit$post_assignment[,1], tfit2$post_assignment[,1])
 
 plot(tfit$post_assignment[,1], tfit$post_assignment[,2])
@@ -39,7 +47,7 @@ plot(tfit$data$betahat/tfit$data$se,tfit$post_assignment[,1])
 
 res <-   cFDR( betahat = data$betahat,
         se      = data$se,
-        X       = data$X, nullweight=4)
+        X       = data$X, nullweight=4, n_sim = 10)
 library(ashr)
 tt <- ash(data$betahat ,data$se ,outputlevel=3, mixcompdist = "normal")
 

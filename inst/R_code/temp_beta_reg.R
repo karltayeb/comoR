@@ -17,7 +17,8 @@ library(comoR)
                       max_class = max_class,
                       model= "beta",
                       mult   = mult,
-                      upper     = upper
+                      upper     = upper,
+                      nullweight = 1000
                       )
 
  str(fit)
@@ -42,7 +43,7 @@ for (i in 1:maxiter) {
 }
 
 #works with two distribution (left and right)
-tfit <- fit.mococomo  (data )
+tfit <- fit.mococomo  (data , nullweight = 1)
 
 tfit$elbo
 tfit$f_list

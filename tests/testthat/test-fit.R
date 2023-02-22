@@ -316,7 +316,9 @@ testthat::test_that("Multinomial SuSiE", {
 
 test_mococomo_N <- function(N = 1) {
   data <- sim_mococomo(N = N)
-  fit <- fit.mococomo(data, maxiter = 1000)
+  fit1 <- fit.mococomo(data, maxiter = 1000, penalty=0)
+  fit2 <- fit.mococomo(data, maxiter = 1000, penalty=5)
+
   return(list(
     fit = fit,
     monotone = .monotone(fit$elbo)

@@ -50,8 +50,12 @@ init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,...) {
     fit$K               <- length(fit$f_list)
     fit$data            <- data
     class(fit) <- "mococomo_normal"
+
     # only need to do this once when component probabilities are fixed
     fit$data_loglik <- compute_data_loglikelihood(fit,data)
+
+    args <- list(...)
+    fit$penalty <- ifelse(hasArg(penalty), args[['penalty']], 0)
 
     return(fit)
 }
@@ -150,9 +154,6 @@ compute_assignment_loglikelihood.mococomo <- function(fit, normalize = TRUE) {
 
 
 
-
-
-
 compute_assignment_jj_bound.mococomo <- function(fit) {
   K <- fit$K
   Xb <- do.call(cbind,
@@ -184,8 +185,8 @@ compute_assignment_jj_bound.mococomo <- function(fit) {
 #' @return an n x K matrix of log posterior probabilities for each data point
 compute_posterior_assignment <- function(fit, log = TRUE) {
   data_loglik <- fit$data_loglik
-  assignment_loglik <- compute_assignment_jj_bound.mococomo(fit)
-  # assignment_loglik <- compute_assignment_loglikelihood.mococomo(fit)
+  assignment_loglik <- compute_assignment_jj_bound.mococomo(fit)  # n x L
+  assignment_loglik[, 1] <- assignment_loglik[, 1] + fit$penalty
 
   # normalize
   res <- do.call(

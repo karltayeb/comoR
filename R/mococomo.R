@@ -47,7 +47,7 @@ fit.mococomo <- function(data,
                          tol       = 1e-3,
                          max_class = 10,
                          mult      = 2,
-                         upper     = FALSE) {
+                         upper     = FALSE, ...) {
 
   if("data_mococomo"%!in% class(data))
   {stop("Please provide object of class data_mococomo")}
@@ -56,7 +56,8 @@ fit.mococomo <- function(data,
                        dist      = dist,
                        max_class = max_class,
                        mult      = mult,
-                       upper     = upper
+                       upper     = upper,
+                       ...
                        )
 
   fit$elbo <- compute_elbo.mococomo(fit)

@@ -1,5 +1,5 @@
-Package: logisticsusie
-Title: Logistic SuSiE and its extensions
+Package: comoR
+Title:covariate moderated FDR methods based SuSiE
 Version: 0.0.0.9004
 Authors@R: c(person("Karl", "Tayeb", ,  "ktayeb@uchicago.edu", role = c("aut", "cre") ),
               person("William ", "Denault",  , "wdenault@uchicago.edu", role = c("aut") ))

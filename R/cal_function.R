@@ -84,7 +84,7 @@ compute_data_loglikelihood.mococomo_normal <- function(fit,data) {
 #'
 #'
 #' @export
-compute_data_loglikelihood.mococomo_beta <- function(fit,data) {
+compute_data_loglikelihood.mococomo_beta <- function(fit,data,pen=TRUE) {
 
 
     if( !is.null(fit$upper_l)){
@@ -93,7 +93,7 @@ compute_data_loglikelihood.mococomo_beta <- function(fit,data) {
                                 function(i){
                                   logp <- dbeta( data$p,
                                                 shape1 = fit$f_list$alpha[[i]],
-                                                shape2 = 1
+                                                shape2 = 1,  log = TRUE
                                   )
                                   logp <- .clamp(logp, 100, -100)
                                   return(logp)
@@ -105,16 +105,21 @@ compute_data_loglikelihood.mococomo_beta <- function(fit,data) {
                               function(i){
                                 logp <- dbeta( data$p,
                                               shape1 =1,
-                                              shape2 =  fit$f_list$beta[[i]]
+                                              shape2 =  fit$f_list$beta[[i]],
+                                               log = TRUE
                                 )
                                 logp <- .clamp(logp, 100, -100)
                                 return(logp)
                               } ))
     if( !is.null(fit$upper_l)){
-           data_loglik <- cbind(lw_df, up_df)
+           data_loglik <- cbind(lw_df, up_df)#ensure that first component is the null dist
     }else{
            data_loglik <- lw_df
     }
+
+      #data_loglik[,1] <-rep(1.1, nrow(data_loglik))
+      #data_loglik
+    #TODO make sure that to remove added penalty
     return(data_loglik)
 
 

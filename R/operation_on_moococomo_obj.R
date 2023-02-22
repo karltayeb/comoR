@@ -1,7 +1,7 @@
 
 
 
-init.mococomo <- function (data, max_class, mult = 2,upper=FALSE,nullweight, ...)
+init.mococomo <- function (data, max_class, mult = 2,upper=FALSE, nullweight, ...)
   UseMethod("init.mococomo")
 
 #' @rdname init.mococomo
@@ -191,7 +191,7 @@ compute_assignment_jj_bound.mococomo <- function(fit) {
 compute_posterior_assignment <- function(fit, log = TRUE) {
   data_loglik <- fit$data_loglik
   assignment_loglik <- compute_assignment_jj_bound.mococomo(fit)  # n x L
-  assignment_loglik[, 1] <- assignment_loglik[, 1] + fit$penalty
+  assignment_loglik[, 1] <- assignment_loglik[, 1] + fit$nullweight
 
   # normalize
   res <- do.call(

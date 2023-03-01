@@ -1,6 +1,6 @@
 set.seed(2)
 P=20
-N <- 1000
+N <- 10000
 
 beta1 <-0.41
 
@@ -28,7 +28,7 @@ for ( o in 1:100){
 
   res <-   cFDR( pvalue  =  p,
                  X       =  X,
-                 n_sim= 10, nullweight = 2,
+                 n_sim= 10, nullweight = 2.3,
                  outputlevel = 2 )
 
    res$result$lfdr <-  res$full_obj$post_assignment[,1]

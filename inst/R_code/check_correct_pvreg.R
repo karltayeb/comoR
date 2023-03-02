@@ -18,7 +18,8 @@ for ( o in 1:100){
   p <- c()
   for ( i in 1:N){
 
-    mix <- c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+     mix <- rep(0,N)
+      mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
      p <- c(p, ifelse( mix[i]==1, rbeta(1,shape1=1,shape2=100 ), runif(1)))
 
   }
@@ -33,13 +34,15 @@ for ( o in 1:100){
                  outputlevel = 2 )
 
 
-   plot(res$result$lfdr, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2)  )
+   plot(res$result$lfdr, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2) , ylim = c(0,1),xlim=c(0,1) )
 
-   plot(res$result$FDR, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2)  )
-
+   points(res$result$FDR, res$result$p,col=ifelse(res$result$FDR <0.05,1,2)  )
+   abline(v=0.05)
+   print(which(res$result$lfdr <0.05))
+   print(which(res$result$FDR <0.05))
    est_lfdr[[o]] <-  table(mix[which(res$result$lfdr <0.05)])  /(c(sum(table(mix[which(res$result$lfdr <0.05)]) ) , sum(mix)))
    est_FDR [[o]] <-  table(mix[which(res$result$FDR <0.05)])  /(c(sum(table(mix[which(res$result$FDR <0.05)]) ) , sum(mix)))
-  print( apply( do.call(rbind, est_lfdr),2, mean))
+  #print( apply( do.call(rbind, est_lfdr),2, mean))
 }
 
 

@@ -12,7 +12,7 @@
 #' If the user specifies the model essentially fit a extension of the ZAP procedure (projected zscore of 0-1) which
 #' corresponds to fitting the same model as for pvalue argument with upper=TRUE;  (mixture of betas
 #' which  contains distribution with decreasing density or distribution with increasing density)
-
+#' @export
 cFDR <- function( betahat,
                   se,
                   pvalue,

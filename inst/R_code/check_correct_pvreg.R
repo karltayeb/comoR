@@ -1,12 +1,13 @@
 set.seed(2)
 P=20
-N <- 10000
+N <- 1000
 
 beta1 <-0.41
 
 
 beta0=-1
 est_lfdr <- list()
+est_FDR  <- list()
 for ( o in 1:100){
 
   x1 <- rnorm(N)
@@ -18,23 +19,26 @@ for ( o in 1:100){
   for ( i in 1:N){
 
     mix <- c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
-    p <- c(p, ifelse( mix[i]==1, rbeta(1,shape1=1,shape2=100 ), runif(1)))
+     p <- c(p, ifelse( mix[i]==1, rbeta(1,shape1=1,shape2=100 ), runif(1)))
 
   }
-
+#p <- runif(N)
   X <- cbind( x1, matrix(rnorm(P*N), ncol=P))
 
 
 
   res <-   cFDR( pvalue  =  p,
                  X       =  X,
-                 n_sim= 10, nullweight = 2.3,
+                 n_sim= 1000, nullweight = 2.3,
                  outputlevel = 2 )
 
-   res$result$lfdr <-  res$full_obj$post_assignment[,1]
+
    plot(res$result$lfdr, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2)  )
-   print(mix[which(res$result$lfdr <0.05)])
-  est_lfdr[[o]] <-  table(mix[which(res$result$lfdr <0.05)])  /(c(sum(table(mix[which(res$result$lfdr <0.05)]) ) , sum(mix)))
+
+   plot(res$result$FDR, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2)  )
+
+   est_lfdr[[o]] <-  table(mix[which(res$result$lfdr <0.05)])  /(c(sum(table(mix[which(res$result$lfdr <0.05)]) ) , sum(mix)))
+   est_FDR [[o]] <-  table(mix[which(res$result$FDR <0.05)])  /(c(sum(table(mix[which(res$result$FDR <0.05)]) ) , sum(mix)))
   print( apply( do.call(rbind, est_lfdr),2, mean))
 }
 

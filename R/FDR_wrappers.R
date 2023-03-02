@@ -29,14 +29,14 @@ prep_out_FDR_wrapper <- function(fit, outputlevel=1,n_sim ){
         resdf <- data.frame(p       = fit$data$p,
                             lfdr    = lfdr,
                             qvalue  = qvalue,
-                            FDR     =FDR
+                            FDR     = FDR
         )
       }
       if("zscore" %in% names(fit$data) ){
         resdf <- data.frame(zscore  = fit$data$zscore,
                             lfdr    = lfdr,
                             qvalue  = qvalue,
-                            FDR     =FDR
+                            FDR     = FDR
         )
       }
 
@@ -57,12 +57,12 @@ prep_out_FDR_wrapper <- function(fit, outputlevel=1,n_sim ){
   if(outputlevel==1){
     out <- list(result =resdf,
                 cs=cs,
-                fitted_effect)
+                fitted_effect=fitted_effect)
   }
   if(outputlevel==2){
     out <- list(result =resdf,
                 cs=cs,
-                fitted_effect,
+                fitted_effect=fitted_effect,
                 full_obj = fit)
   }
   return(out)
@@ -72,18 +72,8 @@ prep_out_FDR_wrapper <- function(fit, outputlevel=1,n_sim ){
 
 
 get_lfdr_mixnorm <- function(fit){
-  tt1 <-  fit$post_assignment[,1]* dnorm( fit$data$betahat, mean=0, sd= fit$data$se )
-  tt2 <-    Reduce("+",
-            lapply( 2: ncol(fit$post_assignment),
-                   function(k)
-                   fit$post_assignment[,k]*
-                   dnorm( fit$data$betahat,
-                          mean=0,
-                          sd= sqrt( fit$data$se^2+ fit$f_list[[k]]$var )
-                          )
-                   )
-            )
-  out <- tt1/(tt1+tt2)
+  tt1 <-  fit$post_assignment[,1]
+  out <- tt1
 
   return(out)
 }
@@ -91,17 +81,9 @@ get_lfdr_mixnorm <- function(fit){
 
 get_lfdr_beta <- function(fit){
 
-  dat_lik <- compute_data_loglikelihood(fit, fit$data)
-  tt1 <-  fit$post_assignment[,1]* dat_lik[,1]
-  tt2 <-    Reduce("+",
-                   lapply( 2: ncol(fit$post_assignment),
-                           function(k)
-                             fit$post_assignment[,k]*dat_lik[,k]
 
-                   )
-  )
-  out <- tt1/(tt1+tt2)
-
+  tt1 <-  fit$post_assignment[,1]
+  out <- tt1
   return(out)
 }
 
@@ -119,7 +101,7 @@ cal_qvalue <- function(lfdr)
 
 assesor.mococomo_beta <- function(fit,n_sim){
 
-up <- 1- apply(fit$post_assignment[,-1],1,sum)
+up <-  fit$post_assignment[, 1]
 low <-  up + apply(fit$post_assignment[,-1]*compute_data_loglikelihood(fit, fit$data)[,-1],1,sum)
 
 obs_assesor <- up/low #observed assessor
@@ -133,7 +115,7 @@ tdata <- fit$data
 
 temp_f <- function(i){
   tdata$p  <-  rep(runif(1), (nrow(fit$data$X)))
-  low_sim <-  up + apply(fit$post_assignment[,-1]*compute_data_loglikelihood(fit,tdata)[,-1],1,sum)
+  low_sim <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit,tdata)[,-1]),1,sum)
   return(up/low_sim)
 }
 
@@ -151,34 +133,26 @@ for( i in 1:nrow(H0_ind)){
 }
 
 
- T_m <- rep(NA, length(obs_assesor))
 
- for ( i in 1:length(obs_assesor)){
+BC_est <- c()
+ for( i in 1:length(obs_assesor)){
    if( length(which(H0_ind[i,]< obs_assesor[i]))==0)
    {
      obs_prob <- 1
    }else{
-     obs_prob <-  length(which(H0_ind[i,]< obs_assesor[i]))/length(H0_ind[i,])
+     obs_prob <-  ( length(which(H0_ind[i,]< obs_assesor[i]))+1)/length(H0_ind[i,])
    }
+   BC_est <-  c(BC_est, obs_prob)
 
-   T_m[i] <- as.numeric(quantile(H0_ind[i,], probs = (1-obs_prob)))
- }
+}
 
 
-#code from zap R package, from Dennis Leung
- bottom <- sapply(X = obs_assesor,
-                  FUN = function(cutpt, vec){max(1, sum( vec <= cutpt ))},
-                  vec = obs_assesor)
 
- top_BC <-  1 +  sapply(X = obs_assesor,
-                         FUN = function(cutpt, vec){ sum( vec <= cutpt )},
-                         vec = T_m)
 
- FDR_est <- ( top_BC /bottom)
-# cutpt_max_BC <- max( blfdr_vec[FDR_est<= alpha])  # this can be -Inf
+ # cutpt_max_BC <- max( blfdr_vec[FDR_est<= alpha])  # this can be -Inf
 # rej_index_blfdr_BC  <- which(  blfdr_vec <=    cutpt_max_BC ) # this can be empty
 
-return( FDR_est)
+return(BC_est)
 }
 
 

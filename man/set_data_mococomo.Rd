@@ -4,7 +4,7 @@
 \alias{set_data_mococomo}
 \title{Preparing data for mococomo fit}
 \usage{
-set_data_mococomo(betahat, se, p, X, ...)
+set_data_mococomo(betahat, se, p, zscore, X, ...)
 }
 \arguments{
 \item{betahat}{numeric, vector of regression coefficients  list of containing the following element see}
@@ -12,6 +12,8 @@ set_data_mococomo(betahat, se, p, X, ...)
 \item{se}{numeric, corresponding standard error}
 
 \item{p}{numeric observed p-values}
+
+\item{zscore}{numeric observed z-scores}
 
 \item{maxiter}{numeric, maximum numerous of iteration set to 100 by defaults}
 

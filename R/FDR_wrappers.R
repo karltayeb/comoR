@@ -101,18 +101,15 @@ cal_qvalue <- function(lfdr)
 
 assesor.mococomo_beta <- function(fit,n_sim){
 
-up <- exp(compute_assignment_jj_bound.mococomo(fit))[,1]
-
-
+  up <- exp(compute_assignment_jj_bound.mococomo(fit))[,1]
 tt <-exp(compute_assignment_jj_bound.mococomo(fit))
-
 tt2 <- 1- apply(tt,1,sum)
-low <-  up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
+ low <-  up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
 
-obs_assesor <- up/low #observed assessor
+#obs_assesor <- up/low #observed assessor
 
-#up <- 1- apply(fit$post_assignment[,-1],1,sum)
-#low <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
+ #up <- 1- apply(fit$post_assignment[,-1],1,sum)
+ #low <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
 
 obs_assesor <- up/low
 
@@ -123,8 +120,8 @@ tdata <- fit$data
 
 temp_f <- function(i){
   tdata$p  <-  rep(runif(1), (nrow(fit$data$X)))
-  #low_sim <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit,tdata)[,-1]),1,sum)
-  low_sim <-   up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit,tdata))[,-1],1,sum)
+  # low_sim <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit,tdata)[,-1]),1,sum)
+   low_sim <-   up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit,tdata))[,-1],1,sum)
   return(up/low_sim)
 }
 
@@ -188,11 +185,10 @@ top_BC <-  1 +  sapply(X = obs_assesor,
 
 FDR_est <- ( top_BC /(bottom ))
 
-FDR_est_final <- rep(NA, length(obs_assesor))
-for( i in 1:length(obs_assesor)){
-
-  FDR_est_final [i]<-  min(FDR_est[which(obs_assesor>=obs_assesor[i])])
-}
+FDR_est_final <- do.call(c,lapply(1:length(obs_assesor), function(i)
+                                                 min(FDR_est[which(obs_assesor>=obs_assesor[i])])
+                                 )
+                          )
 
 
 

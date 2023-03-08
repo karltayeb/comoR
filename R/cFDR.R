@@ -1,9 +1,7 @@
 #'@title Main FDR function
 #'@description Main function gathering all the routines for different FDR estimation procedures
-
 #' @param outputlevel	 Determines amount of output. outputlevel=1 provide simplest output (which should be enough for most applications)
 #' outputlevel= also output the entire mococomo fitted object
-
 #'@details if the user specifies (betahat, se) then cFDR will fit an covariate
 #' moderated ash model. If the user specifies p-value, then cFDR fits a mixture of betas
 #' which only contains distribution with decreasing density (mostly focusing on fitting the leftmost tails).

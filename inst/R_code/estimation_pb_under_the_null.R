@@ -1,32 +1,50 @@
-N=1000
+set.seed(2)
 P=20
+N <- 1000
 
-data <- set_data_mococomo(betahat  = rnorm(N),
-                          X = matrix(rnorm(P*N), ncol=P),
-                          se= rep(1,N))
-#fit mococomo model
-maxiter   = 100
-tol       = 1e-3
-max_class = 10
-mult      = 2
-nullweight     =10
-
-#working init
-fit <- init.mococomo(data,
-                     max_class = max_class,
-                     mult   = mult,
-                     upper     = upper
-
-)
-
-#works with two distribution (left and right)
-tfit <- fit.mococomo  (data,nullweight = 10)
+beta1 <-0.41
 
 
-plot(tfit$post_assignment[,1], tfit$post_assignment[,2])
+beta0=-1
+est_lfdr <- list()
+est_FDR  <- list()
+for ( o in 1:100){
 
-library(ashr)
+  x1 <- rnorm(N)
+  samp_prob <- 1/(1 +exp(-(beta0+beta1*x1)))
 
-tt <- ash( rnorm(N), rep(1,N), mixcompdist = "normal")
-tt$fitted_g
-tfit$f_list
+
+  mix <- c()
+  p <- c()
+  for ( i in 1:N){
+
+    mix <- rep(0,N)
+    mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+    p <- c(p, ifelse( mix[i]==1, rbeta(1,shape1=1,shape2=100 ), runif(1)))
+
+  }
+  #p <- runif(N)
+  X <- cbind( x1, matrix(rnorm(P*N), ncol=P))
+
+
+
+  res <-   cFDR( pvalue  =  p,
+                 X       =  X,
+                 n_sim= 1000, nullweight = 0.1,
+                 outputlevel = 2 )
+
+
+  plot(res$result$lfdr, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2) , ylim = c(0,1),xlim=c(0,1) )
+
+  points(res$result$FDR, res$result$p,col=ifelse(res$result$FDR <0.05,1,2)  )
+  #abline(v=0.05)
+  #print(which(res$result$lfdr <0.05))
+  #print(which(res$result$FDR <0.05))
+  est_lfdr[[o]] <-  table(mix[which(res$result$lfdr <0.05)])[1]
+  est_FDR [[o]] <-  table(mix[which(res$result$FDR <0.05)])[1]   #print( apply( do.call(rbind, est_lfdr),2, mean))
+}
+
+
+
+
+

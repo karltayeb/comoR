@@ -1,6 +1,6 @@
 set.seed(2)
 P=20
-N <- 1000
+N <- 5000
 
 beta1 <-0.41
 
@@ -18,7 +18,7 @@ for ( o in 1:100){
   p <- c()
   for ( i in 1:N){
 
-     mix <- rep(0,N)
+     #mix <- rep(0,N)
       mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
      p <- c(p, ifelse( mix[i]==1, rbeta(1,shape1=1,shape2=100 ), runif(1)))
 
@@ -30,13 +30,15 @@ for ( o in 1:100){
 
   res <-   cFDR( pvalue  =  p,
                  X       =  X,
-                 n_sim= 1000, nullweight = 2.3,
+                 n_sim= 10000, nullweight = 2.3,
                  outputlevel = 2 )
 
 
-   plot(res$result$lfdr, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2) , ylim = c(0,1),xlim=c(0,1) )
+   plot(res$result$lfdr, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2) , ylim = c(0,0.2),xlim=c(0,0.2) )
 
    points(res$result$FDR, res$result$p,col=ifelse(res$result$FDR <0.05,1,2)  )
+   points(p.adjust(p,method = "BH"),res$result$p,col=ifelse(p.adjust(p,method = "BH") <0.05,1,2))
+
    abline(v=0.05)
    print(which(res$result$lfdr <0.05))
    print(which(res$result$FDR <0.05))

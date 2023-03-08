@@ -1,5 +1,5 @@
 
-# logisticsusie
+# Covariate moderated normal mean methods
 
 <!-- badges: start -->
 <!-- badges: end -->

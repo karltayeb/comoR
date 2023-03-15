@@ -273,6 +273,12 @@ compute_elbo.mococomo <- function(fit) {
   return(elbo)
 }
 
+get_KL.mococomo <- function(fit){
+  kl_susie <- sum(purrr::map_dbl(fit$logreg_list, logisticsusie:::compute_kl.binsusie))
+  kl_omega <- sum(purrr::map_dbl(fit$logreg_list, function(x) sum(logisticsusie:::pg_kl(x$data$N, x$params$xi))))
+  kl <- kl_susie + kl_omega
+  return( kl)
+}
 
 #' Expected Binomial Trials
 #' Compute expected  number of binomial trials

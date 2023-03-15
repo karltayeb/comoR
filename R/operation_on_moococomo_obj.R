@@ -309,6 +309,24 @@ iter.mococomo <- function(fit, update_assignment = T, update_logreg = T) {
     fit <- iter.mnsusie(fit, from_init_moco = TRUE)
   }
 
+  if(backfit){
+    cs <-   lapply( 1:length(fit$logreg_list),
+                      function(k)
+                        get_all_cs(fit$logreg_list[[k]])
+                    )
+    l_dummy_cs <-  which_dummy_cs_mococomo(cs=cs,
+                                           X=X,
+                                           min.purity= min.purity)
+    fit$logreg_list <- backfit_effect_mococomo (fit, l_dummy_cs)
+
+    if( sum(lengths(l_dummy_cs))==1)# condition saying no update
+    {
+      backfit <- FALSE
+      fit$elbo <- -Inf
+    }
+
+  }
+
   return(fit)
 }
 
@@ -477,3 +495,61 @@ get_fdr <- function(fit) {
 
   return(out)
 }
+
+
+
+
+
+back_fit_component  <- function( fit, k, new_L){
+
+
+  new_L <- max(c(1,new_L))
+
+  if( new_L>=fit$logreg_list[[k]]$hypers$L){
+    return(fit$logreg_list[[k]])
+  }
+  tt <- fit$logreg_list[[k]]
+  tt$hypers$L  <- new_L
+
+  if( new_L==1){
+    tt$hypers$pi <-  matrix(tt$hypers$pi[1:new_L,]  , nrow = 1)
+    tt$hypers$prior_mean <- tt$hypers$prior_mean[1:new_L]
+    tt$hypers$prior_variance <- tt$hypers$prior_variance[1:new_L]
+
+    tt$params$alpha <- matrix(tt$params$alpha[1:new_L,], nrow = 1)
+    tt$params$mu    <- matrix(fit$logreg_list[[1]]$params$mu   [1:new_L,], nrow = 1)
+    tt$params$var   <- matrix(tt$params$var  [1:new_L,], nrow = 1)
+    tt$params$delta <- matrix(tt$params$delta[1:new_L,],ncol = 1)
+  }else{
+    tt$hypers$pi <-  tt$hypers$pi[1:new_L,]
+    tt$hypers$prior_mean <- tt$hypers$prior_mean[1:new_L]
+    tt$hypers$prior_variance <- tt$hypers$prior_variance[1:new_L]
+
+
+    tt$params$alpha <- tt$params$alpha[1:new_L,]
+    tt$params$mu    <- fit$logreg_list[[1]]$params$mu   [1:new_L,]
+    tt$params$var   <- tt$params$var  [1:new_L,]
+    tt$params$delta <- matrix(tt$params$delta[1:new_L,],ncol = 1)
+  }
+
+  return( tt)
+
+}
+
+
+backfit_effect_mococomo <- function(fit, l_dummy_cs){
+
+  new_L  <- lapply(1:length(fit$logreg_list), function(k )
+    max(c(1, fit$logreg_list[[k]]$hypers$L- length(l_dummy_cs[[k]])))
+  )
+
+ out <-  lapply(1:length(fit$logreg_list),
+         function( k)
+           back_fit_component(fit, k=k, new_L = new_L[[k]] )
+  )
+ return( out)
+}
+
+
+
+

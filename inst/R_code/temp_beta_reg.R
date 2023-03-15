@@ -34,6 +34,7 @@ fit$elbo <- compute_elbo3.mococomo(fit)
 ##working exemple
 for (i in 1:maxiter) {
   fit <- iter.mococomo(fit, is.even(i), is.odd(i))
+
   fit$elbo <- c(fit$elbo, compute_elbo3.mococomo(fit))
 
   # print(paste('asgn:', is.even(i), 'logreg:', is.odd(i), 'elbo: ', tail(fit$elbo, 1)))

@@ -16,7 +16,7 @@ testthat::test_that("Explicit ELBO and  JJ bound agree", {
 
 testthat::test_that("MOCOMO JJ = sum(Bin SuSiE JJ)", {
   data <- sim_mococomo()
-  fit <- fit.mococomo(data, maxiter = 10)
+  fit <- fit.mococomo(data, maxiter = 10,backfit = FALSE)
 
   K <- length(fit$f_list)
   N <- .expected_trials(fit$post_assignment)

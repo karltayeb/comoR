@@ -1,7 +1,7 @@
 testthat::test_that("Different MoCoCoMo ELBO functions agree", {
   data <- sim_mococomo()
   fit <- fit.mococomo(data, maxiter = 10)
-
+  backfit=FALSE
   K <- length(fit$f_list)
   N <- .expected_trials(fit$post_assignment)
   # update omega so jj bound is tight

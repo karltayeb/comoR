@@ -9,8 +9,9 @@
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
 #' @param upper, logical, set to FALSE by default. Specific to beta distribution.
 #'  If true use a to set of mixture for fitting both end of the of the distribution as in the ZAP paper by Leung and Sunn
-#' @parma nullweight  numeric value for penalizing likelihood at point mass 0/null component (should be larger than  1, 1 corresponds to no penalty , 2 corresponds to considering 1 individual "being null" and so on)
+#' @param nullweight  numeric value for penalizing likelihood at point mass 0/null component (should be larger than  1, 1 corresponds to no penalty , 2 corresponds to considering 1 individual "being null" and so on)
 #' (usefull in small sample size)
+#' @param min.purity numeric, minimum purity per CS
 #' @export
 #' @example
 #' #Simulate data under the mococomo model
@@ -46,13 +47,15 @@
 
 # TODO modulate L and decreasing number of CS if obviously dummy cs
 fit.mococomo <- function(data,
-                         model     = "normal",
-                         maxiter   = 100,
-                         tol       = 1e-3,
-                         max_class = 10,
-                         mult      = 2,
-                         upper     = FALSE,
-                         nullweight ) {
+                         model      = "normal",
+                         maxiter    = 100,
+                         tol        = 1e-3,
+                         max_class  = 10,
+                         mult       = 2,
+                         upper      = FALSE,
+                         nullweight ,
+                         min.purity = 0.5,
+                         backfit    = TRUE) {
 
   if("data_mococomo"%!in% class(data))
   {stop("Please provide object of class data_mococomo")}
@@ -68,13 +71,17 @@ fit.mococomo <- function(data,
                        nullweight = nullweight
                        )
 
-  fit$elbo <- compute_elbo.mococomo(fit)
+
+    fit$elbo <- compute_elbo.mococomo(fit)
+
+
   for (i in 1:maxiter) {
 
     fit <- iter.mococomo(fit,
                          update_assignment =is.even(i),
                          update_logreg = is.odd(i))
-
+     # start to monitor convergence after discarding dummy CS,
+    #reset ELBO to -INF when stopping backfting
     fit$elbo <- c(fit$elbo, compute_elbo.mococomo(fit))
 
     # print(paste('asgn:', is.even(i), 'logreg:', is.odd(i), 'elbo: ', tail(fit$elbo, 1)))

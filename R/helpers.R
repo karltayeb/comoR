@@ -237,3 +237,36 @@ set_xi <- function(fit, xi) {
   fit$params$tau <- compute_tau(fit)
   return(fit)
 }
+
+
+# fit a mococomo object
+# cs an object computed using get_all_cs
+# X matrix of covariate
+# min.purity minimum purity level
+
+which_dummy_cs_mococomo <- function( cs, X,min.purity){
+  dummy.cs <- list()
+  for ( k in 1:length(cs)){
+    dummy.cs[[k]] <- NULL
+    for ( j in 1:length(cs[[k]]))
+    {
+      tt <- c()
+      if( min(cor( X[,cs[[k]][[j]]$cs])) <  min.purity){
+        #check if the purity of cs l is lower that min.purity
+        tt<-  c( tt,j)
+      }
+
+
+    }
+    if( length(tt)>0){
+      dummy.cs[[k]] <- tt
+    }
+
+  }
+  dummy.cs[[(k+1)]] <-NA #ensure that if everybody is null then the list exist with k+1 element
+
+  return(dummy.cs)
+
+}
+
+

@@ -1,7 +1,7 @@
 
 
 
-init.mococomo <- function (data, max_class, mult = 2,upper=FALSE, nullweight, ...)
+init.mococomo <- function (data, max_class, mult = 2,upper=FALSE, nullweight,backfit,min.purity,...)
   UseMethod("init.mococomo")
 
 #' @rdname init.mococomo
@@ -13,7 +13,7 @@ init.mococomo <- function (data, max_class, mult = 2,upper=FALSE, nullweight, ..
 #'
 #' @export
 #'
-init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,nullweight,...) {
+init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,nullweight,backfit,min.purity,...) {
   if(missing( nullweight)){
     nullweight <- 2.3
   }
@@ -52,7 +52,9 @@ init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,nullweigh
   fit$K               <- length(fit$f_list)
   fit$data            <- data
   fit$nullweight      <- nullweight
-  class(fit) <- "mococomo_normal"
+  fit$backfit         <- backfit
+  fit$min.purity      <- min.purity
+  class(fit)          <- "mococomo_normal"
   # only need to do this once when component probabilities are fixed
   fit$data_loglik <- compute_data_loglikelihood(fit,data)
 
@@ -69,7 +71,7 @@ init.mococomo.normal <- function(data, max_class, mult = 2,upper=FALSE,nullweigh
 #'
 #' @export
 #'
-init.mococomo.beta <- function(data, max_class, mult = 2,upper=FALSE,nullweight,...) {
+init.mococomo.beta <- function(data, max_class, mult = 2,upper=FALSE,nullweight,backfit,min.purity,...) {
 
   if(missing( nullweight)){
     nullweight <- 10
@@ -114,6 +116,8 @@ init.mococomo.beta <- function(data, max_class, mult = 2,upper=FALSE,nullweight,
   fit$K               <- K
   fit$data            <- data
   fit$nullweight      <- nullweight
+  fit$backfit         <- backfit
+  fit$min.purity      <- min.purity
   class(fit)          <- "mococomo_beta"
   # only need to do this once when component probabilities are fixed
   fit$data_loglik     <- compute_data_loglikelihood(fit,data)
@@ -309,19 +313,19 @@ iter.mococomo <- function(fit, update_assignment = T, update_logreg = T) {
     fit <- iter.mnsusie(fit, from_init_moco = TRUE)
   }
 
-  if(backfit){
+  if(fit$backfit){
     cs <-   lapply( 1:length(fit$logreg_list),
                       function(k)
                         get_all_cs(fit$logreg_list[[k]])
                     )
     l_dummy_cs <-  which_dummy_cs_mococomo(cs=cs,
                                            X=X,
-                                           min.purity= min.purity)
+                                           min.purity= fit$min.purity)
     fit$logreg_list <- backfit_effect_mococomo (fit, l_dummy_cs)
 
     if( sum(lengths(l_dummy_cs))==1)# condition saying no update
     {
-      backfit <- FALSE
+      fit$backfit <- FALSE
       fit$elbo <- -Inf
     }
 

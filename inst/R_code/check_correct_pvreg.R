@@ -30,7 +30,7 @@ for ( o in 1:100){
 
   res <-   cFDR( pvalue  =  p,
                  X       =  X,
-                 n_sim= 10000, nullweight = 2.3,
+                 n_sim= 1000, nullweight = 2.3,
                  outputlevel = 2 )
 
 

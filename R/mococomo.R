@@ -53,7 +53,7 @@ fit.mococomo <- function(data,
                          max_class  = 10,
                          mult       = 2,
                          upper      = FALSE,
-                         nullweight ,
+                         nullweight,
                          min.purity = 0.5,
                          backfit    = TRUE) {
 
@@ -68,7 +68,9 @@ fit.mococomo <- function(data,
                        max_class  = max_class,
                        mult       = mult,
                        upper      = upper,
-                       nullweight = nullweight
+                       nullweight = nullweight,
+                       backfit    = backfit,
+                       min.purity = min.purity
                        )
 
 

@@ -12,7 +12,9 @@ fit.mococomo(
   max_class = 10,
   mult = 2,
   upper = FALSE,
-  nullweight
+  nullweight,
+  min.purity = 0.5,
+  backfit = TRUE
 )
 }
 \arguments{
@@ -24,6 +26,11 @@ fit.mococomo(
 
 \item{upper, }{logical, set to FALSE by default. Specific to beta distribution.
 If true use a to set of mixture for fitting both end of the of the distribution as in the ZAP paper by Leung and Sunn}
+
+\item{nullweight}{numeric value for penalizing likelihood at point mass 0/null component (should be larger than  1, 1 corresponds to no penalty , 2 corresponds to considering 1 individual "being null" and so on)
+(usefull in small sample size)}
+
+\item{min.purity}{numeric, minimum purity per CS}
 
 \item{modeltype}{of model currently supported (normal and beta )}
 }

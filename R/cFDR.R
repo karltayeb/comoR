@@ -23,7 +23,7 @@ cFDR <- function( betahat,
                   mult      = 2,
                   upper     = FALSE,
                   outputlevel = 1,
-                  n_sim= 50000,
+                  n_sim= 1000,
                   alpha,
                   nullweight=4,
                   verbose=TRUE

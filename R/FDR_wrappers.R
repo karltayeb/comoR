@@ -102,26 +102,19 @@ cal_qvalue <- function(lfdr)
 assesor.mococomo_beta <- function(fit,n_sim){
 
   up <- exp(compute_assignment_jj_bound.mococomo(fit))[,1]
-tt <-exp(compute_assignment_jj_bound.mococomo(fit))
-tt2 <- 1- apply(tt,1,sum)
- low <-  up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
+  tt <-exp(compute_assignment_jj_bound.mococomo(fit))
+  tt2 <- 1- apply(tt,1,sum)
+  low <-  up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
 
-#obs_assesor <- up/low #observed assessor
-
- #up <- 1- apply(fit$post_assignment[,-1],1,sum)
- #low <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
 
 obs_assesor <- up/low
-
-#simualted null
 sim_null <- list()
 tdata <- fit$data
 
 
 temp_f <- function(i){
   tdata$p  <-  rep(runif(1), (nrow(fit$data$X)))
-  # low_sim <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit,tdata)[,-1]),1,sum)
-   low_sim <-   up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit,tdata))[,-1],1,sum)
+  low_sim <-   up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit,tdata))[,-1],1,sum)
   return(up/low_sim)
 }
 
@@ -138,20 +131,6 @@ for( i in 1:nrow(H0_ind)){
   H0_ind[i,] <-  H0_ind[i,] [order( H0_ind[i,] )]
 }
 
-
-
-BC_est <- c()
- for( i in 1:length(obs_assesor)){
-   if( length(which(H0_ind[i,]< obs_assesor[i]))==0)
-   {
-     obs_prob <- 1
-
-   }else{
-     obs_prob <-  ( length(which(H0_ind[i,]< obs_assesor[i]))+1)/length(H0_ind[i,])
-   }
-   BC_est <-  c(BC_est, obs_prob)
-
-}
 
 
 
@@ -185,12 +164,16 @@ top_BC <-  1 +  sapply(X = obs_assesor,
 
 FDR_est <- ( top_BC /(bottom ))
 
+
+
 FDR_est_final <- do.call(c,lapply(1:length(obs_assesor), function(i)
                                                  min(FDR_est[which(obs_assesor>=obs_assesor[i])])
                                  )
                           )
 
-
+#FDP_est <- FDR_est
+#plot( log10(obs_assesor),FDP_est, xlim=c(-2.72,-2.4))
+#points(log10(obs_assesor),FDR_est_final , col="red")
 
 return(FDR_est_final )
 

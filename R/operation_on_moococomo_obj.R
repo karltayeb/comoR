@@ -171,9 +171,9 @@ compute_assignment_jj_bound.mococomo <- function(fit) {
   ) # N x K-1
 
   Xi <- do.call(cbind, purrr::map(fit$logreg_list, ~ purrr::pluck(.x, "params", "xi"))) # N x K-1
-
+#pen <- c(max(c(fit$nullweight-1),0), rep(0,K-2))
   f <- function(xi, xb) {
-    tmp <- cumsum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb) + xb
+    tmp <- cumsum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb) + xb#+pen
     tmpK <- sum(log(sigmoid(xi)) - 0.5 * xi - 0.5 * xb )
     jj <- c(tmp, tmpK)
     return(jj)

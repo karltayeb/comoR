@@ -34,7 +34,11 @@ for ( o in 1:100){
                  outputlevel = 2 )
 
 
-   plot(res$result$lfdr, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2) , ylim = c(0,0.2),xlim=c(0,0.2) )
+
+
+
+
+  plot(res$result$lfdr, res$result$p,col=ifelse(res$result$lfdr <0.05,1,2) , ylim = c(0,0.2),xlim=c(0,0.2) )
 
    points(res$result$FDR, res$result$p,col=ifelse(res$result$FDR <0.05,1,2)  )
    points(p.adjust(p,method = "BH"),res$result$p,col=ifelse(p.adjust(p,method = "BH") <0.05,1,2))
@@ -50,22 +54,21 @@ for ( o in 1:100){
 
 
 
+fit <- res
 
 
+cs <- list()
+for( k in 1:length(fit$full_obj$logreg_list))
+{
+  tt <- get_all_cs(fit$full_obj$logreg_list[[k]])
+  cs[[k]] <- list()
+  for ( l in 1:length(tt)){
+    cs[[k]] [[l]]  <-as.vector(unlist(tt[[l]]["cs"]))
+  }
+}
 
-plot( res$result$p, res$result$FDR,   ylim=c(0,1)  )
+cs_como <- cs
 
+cs_como
 
-table(mix[which(res$result$FDR<0.05)])
-plot( res$result$lfdr,x1)
-
-plot(  res$result$FDR,x1)
-summary(lm( res$result$FDR~x1))
-
-
-library(ashr)
-z <- rnorm(100)
-
-tash <- ash(z, rep(1, length(z)))
-length(which(tash$result$lfdr<0.05))
 

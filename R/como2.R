@@ -1,3 +1,5 @@
+# Covariate moderated two groups model
+
 #' @export
 prep_data_como2 <- function(betahat, se, X, Z){
   data <- logisticsusie:::binsusie_prep_data(X, rep(0, length(betahat)), 1, Z)

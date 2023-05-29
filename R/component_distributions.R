@@ -56,6 +56,7 @@ is.point <- function(x) {
   inherits(x, "point")
 }
 
+#' Just a normal distribution with mean centered at the point mass
 #' @export
 convolved_logpdf.point <- function(dist, betahat, se) {
   # return(dnorm(betahat, sd=se, log=T))
@@ -79,6 +80,7 @@ is.normal <- function(x) {
   inherits(x, "normal")
 }
 
+#' Normal distribution with variance given by sum of component dist. and noise
 #' @export
 convolved_logpdf.normal <- function(dist, betahat, se) {
   sd <- sqrt(se^2 + dist$var)
@@ -87,6 +89,8 @@ convolved_logpdf.normal <- function(dist, betahat, se) {
   return(logp)
 }
 
+#' Note: only updates the variance parameter, these components are assumed
+#' to be mean 0
 #' @export
 update_params.normal <- function(dist, betahat, se, weights) {
   # TODO: right now it's just a grid search, but we can impliment EM update easily

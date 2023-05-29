@@ -9,6 +9,7 @@ compute_data_loglikelihood <- function(fit,...){
 }
 
 
+#' @export
 compute_data_loglikelihood.default <- function(fit, data){
   data_loglik <- do.call(cbind,
                          purrr::map(

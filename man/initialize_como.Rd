@@ -4,7 +4,16 @@
 \alias{initialize_como}
 \title{Function implementation the mococomo mode}
 \usage{
-initialize_como(scales, n, p, p2, L, mu0 = 0, var0 = 1, nullweight = 0)
+initialize_como(
+  scales,
+  n,
+  p,
+  p2,
+  mu0 = 0,
+  var0 = 1,
+  nullweight = 0,
+  mnreg = "constant"
+)
 }
 \arguments{
 \item{data}{an object of class data_mococomo  see \link{\code{set_data_mococomo}}}

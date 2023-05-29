@@ -5,7 +5,6 @@
 \alias{reexports}
 \alias{fit_model}
 \alias{update_model}
-\alias{compute_psi}
 \alias{compute_elbo}
 \title{Objects exported from other packages}
 \keyword{internal}
@@ -14,6 +13,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{logisticsusie}{\code{\link[logisticsusie]{compute_elbo}}, \code{\link[logisticsusie]{compute_psi}}, \code{\link[logisticsusie]{fit_model}}, \code{\link[logisticsusie]{update_model}}}
+  \item{logisticsusie}{\code{\link[logisticsusie]{compute_elbo}}, \code{\link[logisticsusie]{fit_model}}, \code{\link[logisticsusie]{update_model}}}
 }}
 

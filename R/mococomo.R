@@ -43,16 +43,21 @@
 #'
 #' fit <- fit.mococomo(data, maxiter=20)
 
-initialize_como <- function(scales, n, p, p2, L, mu0=0, var0=1, nullweight=0){
+initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg='constant'){
   # initialize multinomial susie-- but could be any multinomial regression
   K <- length(scales)
-  mn_reg <- logisticsusie:::initialize_sbmn_susie(K, n, p, p2, L, mu0, var0)
+
+  if(mnreg == 'constant'){
+    mnreg <- initialize_constant_mnreg(K)
+  }
+
+  #mn_reg <- logisticsusie:::initialize_sbmn_susie(K, n, p, p2, L, mu0, var0)
 
   # initialize_scales
   f_list <- purrr::map(scales, ~ normal_component(mu = 0, var = .x^2))
 
   fit <- list(
-    mn_reg = mn_reg, # multinomial regression
+    mnreg = mnreg, # multinomial regression function. takes X, returns pi
     f_list = f_list, # component distributions
     nullweight = nullweight, # penalty promoting the first component,
     K = K,
@@ -62,7 +67,8 @@ initialize_como <- function(scales, n, p, p2, L, mu0=0, var0=1, nullweight=0){
   return(fit)
 }
 
-data_initialize_como <- function(data, max_class, scales=NULL, L = 5, mu0=0, var0=1, nullweight=0) {
+#' Use data to autoselect scales
+data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nullweight=0) {
   como_check_data(data)
 
   if(is.null(scales)){
@@ -74,50 +80,51 @@ data_initialize_como <- function(data, max_class, scales=NULL, L = 5, mu0=0, var
   n <- nrow(data$X)
   p2 <- ncol(data$Z)
 
-  fit <- initialize_como(scales, n, p, p2, L, mu0, var0, nullweight)
+  fit <- initialize_como(scales, n, p, p2, mu0, var0, nullweight)
   return(fit)
 }
 
-update_model.como <- function(fit, data, update_assignment = T, update_logreg=T, track_elbo=T){
+#' @export
+update_model.como <- function(fit, data, update_assignment = T, update_logreg=T, fit_prior_variance=F, track_elbo=T){
   K <- fit$K
 
-  # pre-compute data likelihood
-  # compute if it doesnt exist
+  # pre-compute data likelihood, if we haven't already
   # TODO: use digest::digest to hash the scales and recompute if scales change?
   if(is.null(fit$data_loglik)){
-    fit$data_loglik <- compute_data_loglikelihood(fit,data)
+    fit$data_loglik <- compute_data_loglikelihood(fit, data)
   }
 
   # updates posterior assignments probabilities
-  # these are the data for mnsusie
+  # these are the response variable for mn_regression
   if (update_assignment) {
     fit$post_assignment <- compute_posterior_assignment(fit, data)
-    data$Y <- fit$post_assignment
-    data$Nk <- logisticsusie:::stick_breaking_N(data$Y)
+    #data$Y <- fit$post_assignment
+    #data$Nk <- logisticsusie:::stick_breaking_N(data$Y)
   }
 
   if (update_logreg) {
-    fit$mn_reg <- logisticsusie:::update_model(fit$mn_reg, data)
+    fit$mnreg <- update_prior(fit$mnreg, fit$post_assignment)
   }
 
   if (track_elbo){
-    fit$elbo <- c(fit$elbo, logisticsusie:::compute_elbo(fit, data))
+    fit$elbo <- c(fit$elbo, compute_elbo(fit, data))
   }
   return(fit)
 }
 
+#' @export
 compute_elbo.como <- function(fit, data) {
   # E[log p(beta | y)] -- expected data likelihood
   ll <- sum(fit$post_assignment * fit$data_loglik)
 
-  # Entropy term
+  # Entropy term # E[-log q(y)]
   assignment_entropy <- sum(apply(fit$post_assignment, 1, logisticsusie:::categorical_entropy))
 
   # E[log p(y | X, theta)] - KL[q(theta) || p(theta)] SuSiE ELBO
-  elbo <- tail(fit$mn_reg$elbo, 1) #logisticsusie:::compute_elbo(fit, data)
+  elbo <- compute_elbo(fit$mnreg, fit$post_assignment, data)
 
   # put it all together
-  elbo <- ll + assignment_entropy + elbo
+  elbo <- ll - assignment_entropy + elbo
   return(elbo)
 }
 

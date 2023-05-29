@@ -6,7 +6,9 @@
 #' @return an n x K matrix of log posterior probabilities for each data point
 compute_posterior_assignment <- function(fit, data, log = FALSE) {
   data_loglik <- fit$data_loglik
-  assignment_loglik <- logisticsusie:::predict_assignment_mnsusie(fit$mn_reg, data)  # n x L
+
+  # TODO: generalize to other models
+  assignment_loglik <- compute_log_prior_assignment(fit$mnreg, data)
   assignment_loglik[, 1] <- assignment_loglik[, 1] + fit$nullweight
 
   # normalize

@@ -74,7 +74,7 @@ compute_log_prior_assignment.mult_reg <- function(mnreg, data){
 
   X <- data$X
   tt <-   cbind(rep(1,nrow(X)),X)%*%   coef
-  fitted_pi <- exp(tt)/apply(exp(tt),1,sum)
+  fitted_pi <-  cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
   logpi <- log( fitted_pi)
   return(logpi)
 }

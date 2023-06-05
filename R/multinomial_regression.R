@@ -86,14 +86,16 @@ compute_log_prior_assignment.mult_reg <- function(mnreg, data){
 mult_reg <-  function(assign_mat,X){
 
   coef <- do.call(cbind,
-                  lapply(1:ncol(assign_mat),
-                         function(k) reg_log(X=X, y=assign_mat[,k])$coef
+                  lapply(2:(ncol(assign_mat) ),
+                         function(k) lm( log(assign_mat[,k]/assign_mat[,1])~X)$coefficients
                   )
   )
 
+
   tt <-   cbind(rep(1,nrow(X)),X)%*%   coef
-  fitted_pi <- exp(tt)/apply(exp(tt),1,sum)
+  fitted_pi <- cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
+
   out <- list( logpi=log(fitted_pi),
-               coef=coef)
+               coef=coef )
   return(out)
 }

@@ -77,3 +77,40 @@ compute_elbo.constant_mnreg <- function(mnreg, resps, data){
 # SuSiE prior------------
 
 
+update_prior.mult_reg<- function(mnreg, resps, data){
+  new_log_pis <- mult_reg (resps, X=data$X)$logpi
+  mnreg$logpi <- new_log_pis
+  mnreg$coef <- coef
+
+  return(mnreg)
+}
+
+compute_log_prior_assignment.mult_reg <- function(mnreg, data){
+
+  X <- data$X
+  tt <-   cbind(rep(1,nrow(X)),X)%*%   coef
+  fitted_pi <-  cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
+  logpi <- log( fitted_pi)
+  return(logpi)
+}
+
+
+
+
+
+mult_reg <-  function(assign_mat,X){
+
+  coef <- do.call(cbind,
+                  lapply(2:(ncol(assign_mat) ),
+                         function(k) lm( log(assign_mat[,k]/assign_mat[,1])~X)$coefficients
+                  )
+  )
+
+
+  tt <-   cbind(rep(1,nrow(X)),X)%*%   coef
+  fitted_pi <- cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
+
+  out <- list( logpi=log(fitted_pi),
+               coef=coef )
+  return(out)
+}

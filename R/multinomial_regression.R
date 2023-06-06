@@ -35,6 +35,8 @@ initialize_constant_mnreg <- function(K){
   return(mnreg)
 }
 
+#' @param mnreg multinomial regression object
+#' @param data a list at least containing covariates `X`
 #' @export
 compute_log_prior_assignment.constant_mnreg <- function(mnreg, data){
   n <- nrow(data$X)
@@ -42,6 +44,10 @@ compute_log_prior_assignment.constant_mnreg <- function(mnreg, data){
   return(logpi)
 }
 
+#' @param mnreg multinomial regression object
+#' @param resp responsibilities, posterior assignment probability
+#'     of each observation to each class
+#' @param data a list at least containing covariates `X`
 #' @export
 update_prior.constant_mnreg <- function(mnreg, resps, data){
   new_log_pis <- log(colMeans(resps))
@@ -49,16 +55,25 @@ update_prior.constant_mnreg <- function(mnreg, resps, data){
   return(mnreg)
 }
 
+
+#' @param mnreg multinomial regression object
+#' @param resp responsibilities, posterior assignment probability
+#'     of each observation to each class
+#' @param data a list at least containing covariates `X`
 #' @export
 compute_elbo.constant_mnreg <- function(mnreg, resps, data){
   # E[log p(y | X, \theta)] - KL[q(theta) | p (theta)]
   # in this case theta is a point estimate so just compute
   # E[log p(y | pi)] where expectations are over q(y)
-
   logpi <- compute_log_prior_assignment(mnreg, data)
   ll <- sum(resps * exp(logpi))
   return(ll)
 }
 
+
+# Another model------------
+
+
+# SuSiE prior------------
 
 

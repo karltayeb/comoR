@@ -1,32 +1,121 @@
 #rm(list = ls())
+set.seed(1)
 library(logisticsusie)  #Simulate data under the mococomo model
 library(comoR)
-sim11  <- sim_twococomo(n=1000)#contains all the info
 
+#### Loadings sampling -----
+N=100
+x1 <- rnorm(N,sd=3)
+beta0=-2
+beta1=1
+samp_prob <- 1/(1 +exp(-(beta0+beta1*x1)))
+P=20
+mix <- c()
+betahat <- c()
+betatrue <- c()
+
+X <- cbind( x1, matrix(rnorm(P*N), ncol=P))
+se <- rep(1, length(betahat))
+
+
+for ( i in 1:N){
+  mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+  betatrue <- c(betatrue, mix[i]*rnorm(1,sd=3))
+  betahat <- c( betahat ,   betatrue[i]+rnorm(1,sd=1 ) )
+}
+beta11 <- betahat
+betatrue11 <- betatrue
+
+#p <- runif(N)
+#preparing the data
+
+data11 <- prep_data_como2(betahat =  betahat,
+                           se = se ,
+                           X  =  X,
+                          Z= rep( 1, length(se)))
+
+
+samp_prob <- 1/(1 +exp(-(beta0+beta1*X[,2])))
+mix <- c()
+betahat <- c()
+betatrue <- c()
+
+for ( i in 1:N){
+  mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+  betatrue <- c(betatrue, mix[i]*rnorm(1,sd=3))
+  betahat <- c( betahat ,   betatrue[i]+rnorm(1,sd=1 ) )
+}
+betahat12 <- betahat
+betatrue12 <- betatrue
+
+
+
+data12 <- prep_data_como2(betahat =  betahat,
+                          se = se ,
+                          X  =  X,
+                          Z= rep( 1, length(se)))
+
+
+#### factors sampling -----
+N=100
+P=20
+y1 <- rnorm(N,sd=3)
+
+Y <- cbind( x1, matrix(rnorm(P*N), ncol=P))
+beta0=-2
+beta1=1
+samp_prob <- 1/(1 +exp(-(beta0+beta1*y1)))
+
+mix <- c()
+betahat <- c()
+betatrue <- c()
+for ( i in 1:N){
+  mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+  betatrue <- c(betatrue, mix[i]*rnorm(1,sd=3))
+  betahat <- c( betahat ,   betatrue[i]+rnorm(1,sd=1 ) )
+}
+
+betatrue21 <- betatrue
+betahat21 <- betahat
+
+se <- rep(1, length(betahat))
 
 #preparing the data
 
-data11 <-set_data_mococomo(betahat = sim11$betahat,
-                           se = sim11$se ,
-                           X  = sim11$X)
-sim12  <- sim_twococomo(n=1000)
+#p <- runif(N)
+data21 <- prep_data_como2(betahat =  betahat,
+                          se = se ,
+                          X  =  Y,
+                          Z= rep( 1, length(se)))
 
-fit <- fit.mococomo(data11)
-data12 <-set_data_mococomo(betahat = sim12$betahat,
-                           se = sim12$se ,
-                           X  = sim12$X)
-sim21  <- sim_twococomo(20)
+
+samp_prob <- 1/(1 +exp(-(beta0+beta1*Y[,2])))
+
+mix <- c()
+betahat <- c()
+betatrue <- c()
+for ( i in 1:N){
+  mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+  betatrue <- c(betatrue, mix[i]*rnorm(1,sd=3))
+  betahat <- c( betahat ,   betatrue[i]+rnorm(1,sd=1 ) )
+}
+
+betatrue22 <- betatrue
+betahat22 <- betahat
+
+se <- rep(1, length(betahat))
+
 #preparing the data
-data21 <-set_data_mococomo(betahat = sim21$betahat,
-                           se = sim21$se ,
-                           X  = sim21$X)
-sim22  <- sim_twococomo(20)
-data22 <-set_data_mococomo(betahat = sim22$betahat,
-                           se = sim22$se ,
-                           X  = sim22$X)
 
-Y_true <- sim11$beta%*%t(sim21$beta)+ sim12$beta%*%t(sim22$beta)
-Y <- data11$betahat%*%t(data21$betahat) +data12$betahat%*%t(data22$betahat)
+#p <- runif(N)
+data22 <- prep_data_como2(betahat =  betahat,
+                          se = se ,
+                          X  =  Y,
+                          Z= rep( 1, length(se)))
+
+
+Y_true <- betatrue11%*%t(betatrue21)+ betatrue12%*%t(betatrue22)
+Y <- betatrue11%*%t(betatrue21) +betatrue12%*%t(betatrue22)+ matrix(rnorm(100*100,sd=2), ncol=100)
 
 plot( Y,Y_true)
 X_l =data11$X
@@ -49,26 +138,29 @@ for ( o in 1:4){
   for ( k in 1:K){
     Rk <- cal_partial_residuals.cEBMF(cEBMF.obj,k)
     l_k <- cal_expected_loading( cEBMF.obj, Rk,k)
-    t_data <- set_data_mococomo(betahat = l_k$l_i_hat,
-                                se      = l_k$s_i,
-                                X       = cEBMF.obj$X_l )
-    t_fit <- fit.mococomo(t_data)
 
-    fitted_loading <- post_mean_sd.mococomo (t_fit )
-    cEBMF.obj$loading[,k] <-  fitted_loading$mean
-    cEBMF.obj$loading2[,k] <- fitted_loading$sd^2+ fitted_loading$mean^2
+    t_fit <- mococomo(betahat    = l_k$l_i_hat,
+                      se         = l_k$s_i,
+                      X          = X,
+                      max_iter   = 20,
+                      nullweight = 0.1)
+
+
+    cEBMF.obj$loading[,k]  <-  t_fit$result$mean
+    cEBMF.obj$loading2[,k] <-  t_fit$result$sd^2+ t_fit$result$mean^2
 
     #factor update
 
     f_k <- cal_expected_factor( cEBMF.obj, Rk,k)
-    t_data <- set_data_mococomo(betahat = f_k$f_j_hat,
-                                se      = f_k$s_j,
-                                X       = cEBMF.obj$X_f )
-    t_fit <- fit.mococomo(t_data)
+    t_fit <- mococomo(betahat    = f_k$f_j_hat,
+                      se         = f_k$s_j,
+                      X          = Y,
+                      max_iter   = 20,
+                      nullweight = 0.1)
 
-    fitted_factor <- post_mean_sd.mococomo (t_fit )
-    cEBMF.obj$factor[,k] <-  fitted_factor $mean
-    cEBMF.obj$factor2[,k] <-  fitted_factor$sd^2+ fitted_factor$mean^2
+
+    cEBMF.obj$factor[,k]  <-   t_fit$result$mean
+    cEBMF.obj$factor2[,k] <-   t_fit$result$sd^2+  t_fit$result$mean^2
 
 
     cEBMF.obj<- update_tau.cEBMF (cEBMF.obj )
@@ -82,95 +174,17 @@ for ( o in 1:4){
 
 
 Y_est <- cEBMF.obj$loading[,1]%*%t(cEBMF.obj$factor[,1])+cEBMF.obj$loading[,2]%*%t(cEBMF.obj$factor[,2])
-library(flashr)
+library(flashier)
 f <- flash(Y)
 plot( Y_est, Y )
 plot( Y_true, Y )
 plot( Y_true, Y_est )
 points(Y_true, fitted(f), col="green")
 cor( c(Y_true), c(Y_est))
-cor( c(Y_true), c(Y))
+cor( c(Y_true), c(fitted(f)))
 
 
 
 
 
 
-
-
-
-
-####Hand run update----
-
-library(flashr)
-library(softImpute)
-ftrue = matrix(rnorm(200), ncol=2)
-ltrue = matrix(rnorm(40), ncol=2)
-ltrue[1:10, 1] = 0 # set up some sparsity
-ltrue[11:20, 2] = 0
-Y = ltrue %*% t(ftrue) + rnorm(2000) # set up a simulated matrix
-f = flash(Y, K=3 ,#ebnm_fn= 'ebnm_ash' ,
-          var_type = "constant")
-ldf = f$ldf
-Y_true <- ltrue %*% t(ftrue)
-X_l <- matrix(rnorm(nrow(Y)*10), nrow= nrow(Y))
-X_f <- matrix(rnorm(ncol(Y)*10), nrow= ncol(Y))
-
-cEBMF.obj <- cEBMF (Y, X_l,X_f,K=3, init_type = "udv_si")
-
-cEBMF.obj$elbo
-
-
-cEBMF.obj <- init_cEBMF (Y, X_l,X_f,K=3, init_type = "udv_si")
-
-for (i in 1:10) {
-  cEBMF.obj <- cEBMF_iter  (cEBMF.obj)
-  # print(i)
-
-  print(cbind(c(cEBMF.obj$KL_f),c(cEBMF.obj$KL_l)))
-  print(mean(cEBMF.obj$tau))
-  print(cEBMF.obj$elbo)
-
-}
-
-
-
-Y_est <- Reduce("+", lapply( 1:cEBMF.obj$K, function(k) cEBMF.obj$loading[,k]%*%t(cEBMF.obj$factor[,k]) ))
-f = flash(Y, K=3 ,#ebnm_fn= 'ebnm_ash' ,
-          var_type = "constant")
-plot( cEBMF.obj$elbo)
-plot( Y_est,Y)
-points( Y_est,Y_true, col="green")
-
-plot( fitted(f),Y_true)
-points( Y_est,Y_true, col="green")
-plot( Y_est,fitted(f))
-
-
-cEBMF.fit <- cEBMF (Y, X_l,X_f,K=1, init_type = "udv_si")
-cEBMF.fit$elbo
-
-cEBMF.obj <- init_cEBMF (Y, X_l,X_f,K=1, init_type = "udv_si")
-
-for (i in 1:3) {
-  cEBMF.obj <- cEBMF_iter  (cEBMF.obj)
-  # print(i)
-
-  print(cbind(c(cEBMF.obj$KL_f),c(cEBMF.obj$KL_l)))
-  print(mean(cEBMF.obj$tau))
-  print(cEBMF.obj$elbo)
-
-}
-Y_est <- Reduce("+", lapply( 1:cEBMF.obj$K, function(k) cEBMF.obj$loading %*%t(cEBMF.obj$factor ) ))
-Y_fit <- Reduce("+", lapply( 1:cEBMF.fit $K, function(k) cEBMF.fit $loading %*%t(cEBMF.fit $factor ) ))
-plot( Y_est, cEBMF.fit$Y_fit)
-abline(a=0,b=1)
-f = flash(Y, K=1 ,#ebnm_fn= 'ebnm_ash' ,
-          var_type = "constant")
-plot( cEBMF.obj$elbo)
-plot( Y_est,Y)
-points( Y_est,Y_true, col="green")
-
-plot( fitted(f),Y_true)
-points( Y_est,Y_true, col="green")
-plot( Y_est,fitted(f))

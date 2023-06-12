@@ -3,53 +3,105 @@
 #' @title Function implementation the mococomo mode
 #' @details Function implementation the mococomo mode
 #'
-#' @param data an object of class data_mococomo  see \link{\code{set_data_mococomo}}
-#' @param modeltype of model currently supported (normal and beta )
-#' @param maxiter numeric, maximum numerous of iteration set to 100 by defaults
-#' @param tol tolerance in term of change in ELBO value for stopping criterion
-#' @param upper, logical, set to FALSE by default. Specific to beta distribution.
-#'  If true use a to set of mixture for fitting both end of the of the distribution as in the ZAP paper by Leung and Sunn
-#' @parma nullweight  numeric value for penalizing likelihood at point mass 0/null component (should be larger than  1, 1 corresponds to no penalty , 2 corresponds to considering 1 individual "being null" and so on)
-#' (usefull in small sample size)
+#' @param betahat the estimated coefficient
+#' @param se, the  corresponding standard error (set to 1 if not provided)
+#' @param X covariate of interest
+#' @param  Z additional covariate for adjustement
+#' @param mnreg_type  character that specify the type of regression method used for
+#' latent states default 'mult_reg'
+#' @param max_class maximum number of class
+#' @param scales  vector of positive value to define the prior variance manually.
+#'  If not specified otherwise done following the ash procedure
+#' @param nullweight penalty for the null component
+#' @param tol stopping criterion
+#' @param max_iter maximum number of iteration
 #' @export
-#' @example
-#' #Simulate data under the mococomo model
-#' sim  <- sim_twococomo()
-#' #preparing the data
-#' data <- set_data_mococomo(betahat = sim$betahat,
-#'                                se = sim$se ,
-#'                                 X = sim$X)
-#' #fit mococomo model
-#' fit <- fit.mococomo(data, maxiter=20)
-#' plot(fit$elbo)
-#' .monotone(fit$elbo)
 #'
-#' #get posterior quantities
-#' est<- post_mean_sd.mococomo (fit)
-#' head(est)
-#'  plot( est$mean, data$betahat)
+#' N=10000
+#' x1 <- rnorm(N,sd=3)
+#' beta0=-2
+#' beta1=1
+#' samp_prob <- 1/(1 +exp(-(beta0+beta1*x1)))
 #'
-#' #comparison with ash
+#' P=20
+#' mix <- c()
+#' betahat <- c()
+#' for ( i in 1:N){
+#'   mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+#'   betahat <- c( betahat , ifelse( mix[i]==1, rnorm(1,sd=1 ), rnorm(1,sd=3)))
+#' }
+#' X <- cbind( x1, matrix(rnorm(P*N), ncol=P))
+#' plot( x1,betahat)
+#' mix# if 0 correspond to beta=0
 #'
-#' t_ash <- ash(sim $betahat, sim $se, mixcompdist = "normal")
-#' post_mean_ash <- t_ash$result$PosteriorMean
-#' plot(est$mean, post_mean_ash)
-#' # TODO make a more convincing example
-#'
-#'  sim  <- logisticsusie:::sim_mococomo_beta(n=100)
-#'#preparing the data
-#'data <- set_data_mococomo(p = sim$p,
-#'                          X = sim$X)
-#'
-#' fit <- fit.mococomo(data, maxiter=20)
+#'fit <- mococomo(betahat=betahat, X=X,max_iter=50, nullweight = 0.1
+#')
+#'df1 <- data.frame( betahat =-betahat*(mix-1),
+#'                   x =x1, col=fit$post_assignment[,1])
+#'P1 <- ggplot(df1 , aes( y=betahat ,x =x1, col=fit$post_assignment[,1]))+geom_point()
+#'P1
+#' res_ash <- ash(betahat , se)
 
-initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg='constant'){
+#'plot(  betahat,fit$result$mean)
+#'abline(a=0,b=1)
+#'points(betahat,res_ash$result$PosteriorMean, col="green")
+#'#Lower RMSE for mococomo
+#'sqrt(sum( (fit$result$mean  +  betahat*(mix-1))^2))
+#'sqrt(sum( (res_ash$result$PosteriorMean +  betahat*(mix-1))^2))
+
+mococomo <- function( betahat,
+                      se,
+                      X,
+                      Z,
+                      mnreg_type='mult_reg',
+                      max_class=20,
+                      scales=NULL,
+                      nullweight=.1,
+                      tol= 1e-3,
+                      max_iter=100){
+
+  if (missing( Z)){
+    Z <-  rep( 1, length(betahat))
+  }
+  if( missing( se)){
+    se=rep( 1, length(betahat))
+  }
+
+  data <- prep_data_como2(betahat=betahat,
+                          se=se,
+                          X=X ,
+                          Z=Z)
+
+
+  fit <- data_initialize_como(data       = data,
+                              max_class  = max_class,
+                              scales     = scales,
+                              mnreg_type = mnreg_type ,
+                              nullweight = nullweight )
+
+  fit <- fit_model(fit, data, max_iter = max_iter)
+  fit$result  <-    post_mean_sd.mococomo(fit,data)
+  return(fit)
+}
+
+
+
+
+
+
+
+
+
+
+initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg_type='constant'){
   # initialize multinomial susie-- but could be any multinomial regression
   K <- length(scales)
 
-  if(mnreg == 'constant'){
-    mnreg <- initialize_constant_mnreg(K)
-  }
+
+    mnreg <- initialize_mnreg (mnreg_type = mnreg_type,
+                               K          = K,
+                               n          = n,
+                               p          = p)
 
   #mn_reg <- logisticsusie:::initialize_sbmn_susie(K, n, p, p2, L, mu0, var0)
 
@@ -68,7 +120,7 @@ initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg
 }
 
 #' Use data to autoselect scales
-data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nullweight=0) {
+data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nullweight=0, mnreg_type='constant') {
   como_check_data(data)
 
   if(is.null(scales)){
@@ -80,12 +132,20 @@ data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nu
   n <- nrow(data$X)
   p2 <- ncol(data$Z)
 
-  fit <- initialize_como(scales, n, p, p2, mu0, var0, nullweight)
+  fit <- initialize_como(scales=scales,
+                         n=n,
+                         p=p,
+                         p2=p2,
+                         mu0=mu0,
+                         var0=var0,
+                         nullweight=nullweight,
+                         mnreg_type=mnreg_type)
   return(fit)
 }
 
 #' @export
-update_model.como <- function(fit, data, update_assignment = T, update_logreg=T, fit_prior_variance=F, track_elbo=T){
+update_model.como <- function(x, data, update_assignment = T, update_logreg=T, fit_prior_variance=F, track_elbo=T){
+  fit <- x
   K <- fit$K
 
   # pre-compute data likelihood, if we haven't already
@@ -97,13 +157,15 @@ update_model.como <- function(fit, data, update_assignment = T, update_logreg=T,
   # updates posterior assignments probabilities
   # these are the response variable for mn_regression
   if (update_assignment) {
-    fit$post_assignment <- compute_posterior_assignment(fit, data)
+    fit$post_assignment <- compute_posterior_assignment(fit = fit, data = data)
     #data$Y <- fit$post_assignment
     #data$Nk <- logisticsusie:::stick_breaking_N(data$Y)
   }
 
   if (update_logreg) {
-    fit$mnreg <- update_prior(fit$mnreg, fit$post_assignment)
+    fit$mnreg <- update_prior(mnreg = fit$mnreg,
+                              resps = fit$post_assignment,
+                              data  = data)
   }
 
   if (track_elbo){

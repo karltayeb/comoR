@@ -27,13 +27,13 @@ compute_posterior_assignment <- function(fit, data, log = FALSE) {
 
 #' @title Compute individual posterior variance from marginal normal mean model
 #' @description internal function to compute posterior mean and sds
-t_ind_var.mococomo <- function(fit, i) {
+t_ind_var.mococomo <- function(fit, data, i) {
   do.call(
     c,
     lapply(
       1:length(fit$f_list),
       function(k) {
-        1 / ((1 / fit$data$se[i]^2) + (1 / fit$f_list[[k]]$var))
+        1 / ((1 /  data$se[i]^2) + (1 / fit$f_list[[k]]$var))
       }
     )
   )
@@ -49,22 +49,22 @@ t_ind_var.mococomo <- function(fit, i) {
 #' @param i individual of interest
 #' @exemple
 #' t_post_var <-   do.call(rbind,
-#'                        lapply( 1:length(fit$data$betahat),
+#'                        lapply( 1:length(data$betahat),
 #'                                function(i)t_ind_var.mococomo(fit, i)
 #'                        )
 #' )
 #'
 #'
-#' post_beta <-     do.call(c, lapply( 1: length(fit$data$betahat), function(i)cal_ind_postmean(fit, t_post_var,i,) ))
+#' post_beta <-     do.call(c, lapply( 1: length(data$betahat), function(i)cal_ind_postmean(fit, t_post_var,i,) ))
 
-cal_ind_moment12 <- function(fit, t_post_var, i) {
+cal_ind_moment12 <- function(fit,data, t_post_var, i) {
   temp <- do.call(
     c,
     lapply(
       1:length(fit$f_list),
       function(k) {
-        (t_post_var[i, k] / (fit$data$se[i]^2) )*
-          (fit$data$betahat[i])
+        (t_post_var[i, k] / ( data$se[i]^2) )*
+          ( data$betahat[i])
       }
     )
   )
@@ -92,19 +92,22 @@ cal_ind_moment12 <- function(fit, t_post_var, i) {
 #' @export
 #' @example
 #' see \link{\code{fit.mococomo}}
-post_mean_sd.mococomo <- function(fit) {
+post_mean_sd.mococomo <- function(fit, data) {
   t_post_var <- do.call(
     rbind,
     lapply(
-      1:length(fit$data$betahat),
-      function(i) t_ind_var.mococomo(fit, i)
+      1:length( data$betahat),
+      function(i) t_ind_var.mococomo(fit,data,  i=i)
     )
   )
   out <- do.call(
     rbind,
     lapply(
-      1:length(fit$data$betahat),
-      function(i) cal_ind_moment12(fit, t_post_var, i)
+      1:length(  data$betahat),
+      function(i) cal_ind_moment12(fit,
+                                   data=data,
+                                   t_post_var=t_post_var,
+                                   i=i)
     )
   )
   out <- data.frame(
@@ -124,13 +127,13 @@ post_mean_sd.mococomo <- function(fit) {
 #' @param fit a mococomo object
 #' @export
 get_fdr <- function(fit) {
-  tt1 <- fit$post_assignment[, 1] * dnorm(fit$data$betahat, mean = 0, sd = fit$data$se)
+  tt1 <- fit$post_assignment[, 1] * dnorm( data$betahat, mean = 0, sd =  data$se)
   tt2 <- Reduce("+", lapply(
     2:ncol(fit$post_assignment),
     function(k) {
-      fit$post_assignment[, k] * dnorm(fit$data$betahat,
+      fit$post_assignment[, k] * dnorm( data$betahat,
                                        mean = 0,
-                                       sd = sqrt(fit$data$se^2 + fit$f_list[[k]]$var)
+                                       sd = sqrt( data$se^2 + fit$f_list[[k]]$var)
       )
     }
   ))

@@ -186,5 +186,12 @@ cor( c(Y_true), c(fitted(f)))
 
 
 
+plot(cEBMF.obj$loading[,2], betatrue12 )
+
+
+plot(cEBMF.obj$loading[,1], betatrue11 )
+
+plot(cEBMF.obj$factor[,1], betatrue21 )
+plot(cEBMF.obj$factor[,2], betatrue22 )
 
 

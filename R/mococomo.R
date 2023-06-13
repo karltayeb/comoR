@@ -1,6 +1,4 @@
-# Implements covariate moderated ASH "MOre COmponents COvariate MOderated"
-
-#' @title Function implementation the mococomo mode
+#' @title  Implements covariate moderated ASH "MOre COmponents COvariate MOderated"
 #' @details Function implementation the mococomo mode
 #'
 #' @param betahat the estimated coefficient
@@ -16,7 +14,7 @@
 #' @param tol stopping criterion
 #' @param max_iter maximum number of iteration
 #' @export
-#'
+#'@examples
 #'effect_var <- 3
 #'
 #'

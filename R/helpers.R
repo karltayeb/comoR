@@ -118,7 +118,7 @@ get_all_cs <- function(fit, requested_coverage = 0.95) {
 #' @param maxiter numeric, maximum numerous of iteration set to 100 by defaults
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
 #' @export
-#' @example
+#' @examples
 #' see \link{\code{fit.mococomo}}
 set_data_mococomo <- function(betahat, se, p,zscore, X, ...) {
   if (!is.numeric(X)) {

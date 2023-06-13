@@ -4,7 +4,7 @@
 \alias{cal_ind_moment12}
 \title{Compute individual posterior first and second moment}
 \usage{
-cal_ind_moment12(fit, t_post_var, i)
+cal_ind_moment12(fit, data, t_post_var, i)
 }
 \arguments{
 \item{fit}{a mococomo object}
@@ -15,6 +15,14 @@ cal_ind_moment12(fit, t_post_var, i)
 }
 \description{
 Compute individual posterior first and second moment
+}
+\examples{
+t_post_var <-   do.call(rbind,
+                       lapply( 1:length(data$betahat),
+                               function(i)t_ind_var.mococomo(fit, i)
+                       )
+)
 
-# TODO: currently only for center prior
+
+post_beta <-     do.call(c, lapply( 1: length(data$betahat), function(i)cal_ind_postmean(fit, t_post_var,i,) ))
 }

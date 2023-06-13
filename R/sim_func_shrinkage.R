@@ -1,3 +1,4 @@
+#'@export
 sim_func_single_effect <- function( N=1000,
                                     beta0=-2,
                                     beta1=1,

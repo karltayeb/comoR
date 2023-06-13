@@ -10,5 +10,5 @@ update_tau.cEBMF(cEBMF.obj)
 \item{cEBMF}{an CEBMF object}
 }
 \description{
-Estimate noise value
+Estimate noise value for different type of structure
 }

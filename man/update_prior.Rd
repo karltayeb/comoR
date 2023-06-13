@@ -4,7 +4,7 @@
 \alias{update_prior}
 \title{Update the multinomial regression}
 \usage{
-update_prior(x, ...)
+update_prior(mnreg, ...)
 }
 \description{
 Update the multinomial regression

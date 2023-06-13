@@ -4,13 +4,14 @@
 \alias{post_mean_sd.mococomo}
 \title{Compute individual posterior mean and sd under mococomo model}
 \usage{
-post_mean_sd.mococomo(fit)
+post_mean_sd.mococomo(fit, data)
 }
 \arguments{
 \item{fit}{a mococomo object}
 }
 \description{
 Compute individual posterior mean and sd under mococomo model
-
-# TODO: allow using new observation from another data set (e.g. testing)
+}
+\examples{
+see \link{\code{fit.mococomo}}
 }

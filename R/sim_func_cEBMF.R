@@ -1,3 +1,5 @@
+#' @export
+
 sim_func_cEBMF <- function( N=200, # number of row
                             L=100, #number of columns
                             K=2, #number of factor

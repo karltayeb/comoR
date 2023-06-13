@@ -10,7 +10,8 @@ data_initialize_como(
   scales = NULL,
   mu0 = 0,
   var0 = 1,
-  nullweight = 0
+  nullweight = 0,
+  mnreg_type = "constant"
 )
 }
 \description{

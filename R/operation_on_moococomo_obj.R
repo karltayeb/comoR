@@ -42,12 +42,10 @@ t_ind_var.mococomo <- function(fit, data, i) {
 
 #' @title Compute individual posterior first and second moment
 #' @description Compute individual posterior first and second moment
-#'
-#' # TODO: currently only for center prior
 #' @param fit a mococomo object
 #' @param  t_ind_var output of t_ind_var (using same mocomo object!)
 #' @param i individual of interest
-#' @exemple
+#' @examples
 #' t_post_var <-   do.call(rbind,
 #'                        lapply( 1:length(data$betahat),
 #'                                function(i)t_ind_var.mococomo(fit, i)
@@ -86,11 +84,9 @@ cal_ind_moment12 <- function(fit,data, t_post_var, i) {
 
 #' @title Compute individual posterior mean and sd under mococomo model
 #' @description Compute individual posterior mean and sd under mococomo model
-#'
-#' # TODO: allow using new observation from another data set (e.g. testing)
 #' @param fit a mococomo object
 #' @export
-#' @example
+#' @examples
 #' see \link{\code{fit.mococomo}}
 post_mean_sd.mococomo <- function(fit, data) {
   t_post_var <- do.call(
@@ -122,8 +118,7 @@ post_mean_sd.mococomo <- function(fit, data) {
 
 
 #' @title Compute individual fdr value  mococomo model with centered normal mixture
-#' @descriptionCompute individual fdr value  mococomo model with centered normal mixture
-#'
+#' @description Compute individual fdr value  mococomo model with centered normal mixture
 #' @param fit a mococomo object
 #' @export
 get_fdr <- function(fit) {

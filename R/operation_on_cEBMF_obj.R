@@ -337,7 +337,7 @@ cal_partial_residuals.cEBMF <- function(cEBMF.obj,k)
 
 
 #'@title Estimate noise value
-#'@'description Estimate noise value for different type of structure
+#'@description Estimate noise value for different type of structure
 #'@param cEBMF an CEBMF object
 
 

@@ -4,10 +4,10 @@ library(logisticsusie)  #Simulate data under the mococomo model
 library(comoR)
 
 #### Loadings sampling -----
-N=100
+N=200
 x1 <- rnorm(N,sd=3)
 beta0=-2
-beta1=1
+beta1=2
 samp_prob <- 1/(1 +exp(-(beta0+beta1*x1)))
 P=20
 mix <- c()
@@ -115,7 +115,7 @@ data22 <- prep_data_como2(betahat =  betahat,
 
 
 Y_true <- betatrue11%*%t(betatrue21)+ betatrue12%*%t(betatrue22)
-Y <- betatrue11%*%t(betatrue21) +betatrue12%*%t(betatrue22)+ matrix(rnorm(100*100,sd=2), ncol=100)
+Y <- betatrue11%*%t(betatrue21) +betatrue12%*%t(betatrue22)+ matrix(rnorm(100*100,sd=4), ncol=100)
 
 plot( Y,Y_true)
 X_l =data11$X
@@ -180,8 +180,10 @@ plot( Y_est, Y )
 plot( Y_true, Y )
 plot( Y_true, Y_est )
 points(Y_true, fitted(f), col="green")
-cor( c(Y_true), c(Y_est))
-cor( c(Y_true), c(fitted(f)))
+
+sqrt(sum( (Y_true-Y_est)^2))
+sqrt(sum( (Y_true- fitted(f))^2))
+
 
 
 

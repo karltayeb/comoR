@@ -93,7 +93,7 @@ sim_func_cEBMF <- function( N=200, # number of row
 
       Y_est <- cEBMF.obj$loading[,1]%*%t(cEBMF.obj$factor[,1])
 
-      abline(a=0,b=1)
+
     }
 
   }

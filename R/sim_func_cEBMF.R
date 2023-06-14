@@ -9,8 +9,15 @@ sim_func_cEBMF <- function( N=200, # number of row
                             beta1=2,
                             noise_level= 3,
                             max_iter_cEBMF=20,
-                            max_iter_mococomo=20
+                            max_iter_mococomo=20,
+                            seed
 ){
+
+  if( missing( seed)){
+    set.seed(rpois(lambda = 100,n=1))
+  }else{
+    set.seed(seed)
+  }
 
   X_l <-   matrix(rnorm(P1*N, sd=3), ncol=P1)
   X_f <-   matrix(rnorm(P2*L, sd=3), ncol=P2)
@@ -129,5 +136,9 @@ sim_func_cEBMF <- function( N=200, # number of row
              flash.obj = f,
              cEBMF.obj = cEBMF.obj
              )
-
+return( out)
 }
+
+
+
+

@@ -67,7 +67,7 @@ sim_func_cEBMF <- function( N=200, # number of row
 
       t_fit <- mococomo(betahat    = l_k$l_i_hat,
                         se         = l_k$s_i,
-                        X          = X,
+                        X          = X_l,
                         max_iter   = 20,
                         nullweight = 0.1)
 
@@ -80,7 +80,7 @@ sim_func_cEBMF <- function( N=200, # number of row
       f_k <- cal_expected_factor( cEBMF.obj, Rk,k)
       t_fit <- mococomo(betahat    = f_k$f_j_hat,
                         se         = f_k$s_j,
-                        X          = Y,
+                        X          = X_f,
                         max_iter   = max_iter_mococomo,
                         nullweight = 0.1)
 

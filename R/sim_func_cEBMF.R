@@ -92,7 +92,7 @@ sim_func_cEBMF <- function( N=200, # number of row
       cEBMF.obj<- update_tau.cEBMF (cEBMF.obj )
 
       Y_est <- cEBMF.obj$loading[,1]%*%t(cEBMF.obj$factor[,1])
-      plot( Y_est, Y_obs )
+
       abline(a=0,b=1)
     }
 

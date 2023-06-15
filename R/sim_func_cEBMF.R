@@ -112,8 +112,8 @@ sim_func_cEBMF <- function( N=200, # number of row
   f <- flash(Y_obs)
 
 
-  rmse_cEBMF   <- sqrt(sum( (Y_true-Y_est)^2))
-  rmse_flash   <-  sqrt(sum( (Y_true- fitted(f))^2))
+  rmse_cEBMF   <- sqrt(mean( (Y_true-Y_est)^2))
+  rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
   rmse         <- c(rmse_cEBMF, rmse_flash)
   names(rmse ) <- c("rmse_cEBMF", "rmse_flash")
 

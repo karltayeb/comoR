@@ -45,9 +45,9 @@ sim_func_single_effect <- function( N=1000,
   T1_ash <-  length(which( mix[which( tt$result$lfdr<0.05)]==0))/length(which( tt$result$lfdr<0.05))
   T1_mco <-length(which( mix[which(res $post_assignment[,1]<0.05)]==0))/length(which(res $post_assignment[,1]<0.05))
 
-  rmse_mco <-  sqrt(sum( (res$result$mean -  betatrue)^2))
+  rmse_mco <-  sqrt(mean( (res$result$mean -  betatrue)^2))
 
-  rmse_ash <- sqrt(sum( (( tt$result$PosteriorMean -  betatrue)^2)))
+  rmse_ash <- sqrt(mean( (( tt$result$PosteriorMean -  betatrue)^2)))
 
 
   out <- c( rmse_mco,

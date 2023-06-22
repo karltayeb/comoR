@@ -15,9 +15,9 @@
 #' @param max_iter maximum number of iteration
 #' @export
 #'@examples
-#'effect_var <- 3
-#'
-#'
+#'library(nnet)
+#'library(ggplot2)
+#'library(ashr)
 #'N=5000
 #'x1 <- rnorm(N,sd=3)
 #'beta0=-2
@@ -34,7 +34,7 @@
 #'#se <- rep(1,N)
 #'for ( i in 1:N){
 #'  mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
-#'  betatrue <- c(betatrue,  mix[i] *rnorm(1,sd=effect_var))
+#'  betatrue <- c(betatrue,  mix[i] *rnorm(1,sd=3))
 #'  betahat <- c( betahat ,   betatrue[i]+rnorm(1,sd=se[i] ) )
 #'}
 #'

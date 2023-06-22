@@ -7,19 +7,26 @@
 #' @param K numeric number of factors
 #' @param type_noise specify which kind of noise structure is expected, currently three choices. Whether noise constant accross column ('column_wise'), constant 'constant' or constant across rown 'row_wise'
 #' @param maxit maximum nuber of iterations
+#' @param  init_type initialization method (default "udv_si")
+#' @param mnreg_type multinomial regression method default 'mult_reg'
 #' @param tol paramter for assessing convergence
 #' @return a cEBMF object
 #'
 #'
 #'
 
-cEBMF <- function( Y, X_l,X_f,K=1, type_noise='constant',init_type="udv_si", maxit=100,  tol=1e-3  ){
+cEBMF <- function( Y, X_l,X_f,K=1,
+                   type_noise='constant',
+                   init_type="udv_si",
+                   mnreg_type='mult_reg',
+                   maxit=100,  tol=1e-3  ){
 
   cEBMF.obj <- init_cEBMF (Y,
                            X_l,
                            X_f,
                            K=K,
                            type_noise=type_noise,
+                           mnreg_type=mnreg_type,
                            init_type= init_type
                            )
 

@@ -12,7 +12,10 @@
 #'  @param type_noise specify which kind of noise structure is expected, currently three choices. Whether noise constant accross column ('column_wise'), constant 'constant' or constant across rown 'row_wise'
 #'  @param init_type specify initialisation method for loading and factor, methods includes: "udv", "udv_si_svd", "si" (softimpute), "ones" and "rand_udv"
 #' @return a cEBMF object
-init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si" )
+init_cEBMF <- function(Y, X_l,X_f,K=1,
+                       type_noise= "constant",
+                       init_type="udv_si",
+                       mnreg_type='mult_reg')
 {
 
 
@@ -42,7 +45,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      mnreg_type= mnreg_type
 
     )
   }
@@ -78,8 +82,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
-
+      KL_f          = list(),
+      mnreg_type= mnreg_type
     )
   }
   if(init_type=="udv"){
@@ -109,7 +113,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      mnreg_type= mnreg_type
 
     )
   }
@@ -142,7 +147,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      mnreg_type= mnreg_type
 
     )
   }
@@ -174,7 +180,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      mnreg_type= mnreg_type
 
     )
   }
@@ -391,17 +398,24 @@ update_cEBMF <-  function(cEBMF.obj, k)
 {
 
   #loading update
+
+
+
   Rk <- cal_partial_residuals.cEBMF(cEBMF.obj,k)
   l_k <- cal_expected_loading( cEBMF.obj, Rk,k)
-  t_data <- set_data_mococomo(betahat = l_k$l_i_hat,
-                              se      = l_k$s_i,
-                              X       = cEBMF.obj$X_l )
-  t_fit <- fit.mococomo(t_data)
 
-  fitted_loading <- post_mean_sd.mococomo (t_fit )
+  t_fit <- mococomo(betahat    = l_k$l_i_hat,
+                    se         = l_k$s_i,
+                    X          = X_l,
+                    max_iter   = 20,
+                    nullweight = 0.1)
 
 
-  if( cEBMF.obj$K==1){
+  cEBMF.obj$loading[,k]  <-  t_fit$result$mean
+  cEBMF.obj$loading2[,k] <-  t_fit$result$sd^2+ t_fit$result$mean^2
+
+  #factor update
+   if( cEBMF.obj$K==1){
     cEBMF.obj$loading      <-  fitted_loading$mean
     cEBMF.obj$loading2     <- fitted_loading$sd^2+ fitted_loading$mean^2
   }else{
@@ -412,21 +426,21 @@ update_cEBMF <-  function(cEBMF.obj, k)
 
   #factor update
 
-  f_k <- cal_expected_factor( cEBMF.obj,Rk,k)
-  t_data <- set_data_mococomo(betahat = f_k$f_j_hat,
-                              se      = f_k$s_j,
-                              X       = cEBMF.obj$X_f )
-  t_fit <- fit.mococomo(t_data)
-
-  fitted_factor <- post_mean_sd.mococomo (t_fit )
-
-  if( cEBMF.obj$K==1){
+  f_k <- cal_expected_factor( cEBMF.obj, Rk,k)
+  t_fit <- mococomo(betahat    = f_k$f_j_hat,
+                    se         = f_k$s_j,
+                    X          = X_f,
+                    max_iter   = max_iter_mococomo,
+                    nullweight = 0.1)
+if( cEBMF.obj$K==1){
     cEBMF.obj$factor      <-  fitted_factor $mean
     cEBMF.obj$factor2     <-  fitted_factor$sd^2+ fitted_factor$mean^2
   }else{
     cEBMF.obj$factor[,k]  <-  fitted_factor $mean
     cEBMF.obj$factor2[,k] <-  fitted_factor$sd^2+ fitted_factor$mean^2
   }
+
+  cEBMF.obj<- update_tau.cEBMF (cEBMF.obj )
   cEBMF.obj$KL_f[[k]]  <- get_KL.mococomo(t_fit)
 
   return(cEBMF.obj)

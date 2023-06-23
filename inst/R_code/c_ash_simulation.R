@@ -1,10 +1,11 @@
 #'@export
-sim_func_single_effect <- function( N=1000,
+c_ash_sim <- function( N=1000,
                                     beta0=-2,
                                     beta1=1,
                                     var_cov_effect=3,
                                     effect_var=3,
                                     noise_level=1,
+                                    nullweight=.1,
                                     P=20,
                                     se_type="constant",
                                     df_se=2,
@@ -169,7 +170,8 @@ sim_func_single_effect <- function( N=1000,
     }
 
     for ( i in 1:N){
-      mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+      mix <-c(mix, sample(c(0,1), size=1,
+                          prob = c(1- samp_prob[i], samp_prob[i])))
       betatrue <- c( betatrue, mix[i] *samp_fun())
       betahat <- c( betahat ,   betatrue[i]+rnorm(1,sd=noise_level ) )
     }
@@ -321,7 +323,7 @@ sim_func_single_effect <- function( N=1000,
   }
 
   X <- cbind( x1, matrix(rnorm(P*N), ncol=P))
-  res <- mococomo(betahat = betahat,se=se, X,max_iter=max_iter)
+  res <- mococomo(betahat = betahat,se=se, X,max_iter=max_iter, nullweight = nullweight)
   tt <- ash(betahat, se)
 
 
@@ -378,10 +380,9 @@ sim_func_single_effect <- function( N=1000,
   if( extended ){
 
 
-    lfdr_est = data.frame(lfdr_ash  =cbind(tt$result$lfdr,
-                                           lfdr_cash =res $post_assignment[,1],
+    lfdr_est = data.frame(lfdr_ash  =tt$result$lfdr,
+                                           lfdr_cash =res$result$lfdr,
                                            true_lfdr = true_lfdr)
-    )
 
     out <- list( summary=out,
                  lfdr_est =lfdr_est

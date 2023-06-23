@@ -120,8 +120,9 @@ post_mean_sd.mococomo <- function(fit, data) {
 #' @title Compute individual fdr value  mococomo model with centered normal mixture
 #' @description Compute individual fdr value  mococomo model with centered normal mixture
 #' @param fit a mococomo object
+#' @param data data frame with 2 column, betahat and se
 #' @export
-get_fdr <- function(fit) {
+get_fdr <- function(fit,data) {
   tt1 <- fit$post_assignment[, 1] * dnorm( data$betahat, mean = 0, sd =  data$se)
   tt2 <- Reduce("+", lapply(
     2:ncol(fit$post_assignment),

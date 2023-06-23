@@ -109,7 +109,10 @@ mococomo <- function( betahat,
       break
     }
   }
-  fit$result  <-    post_mean_sd.mococomo(fit,data)
+  fit$result  <-    post_mean_sd.mococomo(fit=fit,
+                                          data=data)
+  fit$result$lfdr <- get_fdr (fit=fit,
+                              data=data)
   return(fit)
 }
 

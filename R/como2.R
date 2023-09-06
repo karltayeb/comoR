@@ -96,6 +96,11 @@ data_initialize_como2 <- function(data, mu0=0, var0=1, f1_dist='normal', f1_para
     logreg <- rlang::exec(initialize_linear_susie, !!!logreg_params)
   }
 
+  if(logreg == 'logistic_ibss'){
+    logreg_params$n <- length(f0_loglik)
+    logreg <- rlang::exec(initialize_logistic_ibss, !!!logreg_params)
+  }
+
   fit <-list(
     logreg = logreg,
     f0 = f0,

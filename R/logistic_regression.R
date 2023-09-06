@@ -127,10 +127,11 @@ compute_elbo.linear_susie <- function(logreg, qz, data){
 null_model <- function(n){
   model <- list(n=n)
   class(model) <- 'null_model'
+  return(model)
 }
 
 #' @export
-null_model.predict <- function(x, ...){
+predict.null_model <- function(x, ...){
   return(rep(0, x$n))
 }
 
@@ -161,27 +162,22 @@ compute_prior_log_odds.logistic_ibss <- function(logreg, data){
 #' @param data a list at least containing covariates `X`
 #' @export
 update_prior.logistic_ibss <- function(logreg, qz, data){
-  # transform probabilities to log-odds scale
-  # clip so that we don't get Inf, -Inf
-  qz_clipped <- pmin(pmax(qz, 1e-10), 1 - 1e-10)
-  y <- logodds(qz_clipped)
-
   # update susie fit using new `y`
-  args <- c(list(X = as.matrix(data$X), y = y), logreg$susie_args)
-  logreg$susie <- rlang::exec(susieR::susie, !!!args)
+  args <- c(list(X = as.matrix(data$X), y = qz), logreg$susie_args)
+  logreg$logistic_ibss <- rlang::exec(logisticsusie::generalized_ibss, !!!args)
   return(logreg)
 }
 
 
 #' Compute "ELBO"
 #' @export
-compute_elbo.linear_susie <- function(logreg, qz, data){
+compute_elbo.logistic_ibss <- function(logreg, qz, data){
   n <- length(qz)
   prior_log_odds <- compute_prior_log_odds(logreg, data)
   log_pi1 <- log(sigmoid(prior_log_odds))
   log_pi0 <- log(sigmoid(-prior_log_odds))
   elbo <- sum((1 - qz) * log_pi0 + qz * log_pi1)
-  elbo <- elbo + tail(logreg$susie$elbo, 1)
+  elbo <- elbo #+ tail(logreg$susie$elbo, 1)
   return(elbo)
 }
 

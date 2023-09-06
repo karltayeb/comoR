@@ -1,17 +1,27 @@
 
-example_fit <- function(){
+como2_linear_susie <- function(){
   sim <- logisticsusie::sim_ser()
+  betahat <- rnorm(length(sim$y))
+  betahat[sim$y==1] <- rnorm(sum(sim$y == 1), sd=2)
+  se <- rep(1, length(sim$y))
+
+  data <- prep_data_como2(betahat, se, sim$X, sim$Z)
+  fit <- data_initialize_como2(data, f1_params = list(mu=0, var = 4), logreg='linear_susie')
+  fit <- fit_model(fit, data)
+}
+
+como2_linear_susie <- function(){
+  sim <- logisticsusie::sim_ser()
+  gibss <- with(sim, logisticsusie::generalized_ibss(X, y, L=5))
+
   betahat <- rnorm(length(sim$y))
   betahat[sim$y==1] <- rnorm(sum(sim$y == 1), sd=5)
   se <- rep(1, length(sim$y))
 
   data <- prep_data_como2(betahat, se, sim$X, sim$Z)
-  fit <- data_initialize_como2(data, L=5)
-
-  fit <- update_model(fit, data, estimate_f1 = F)
-  fit <- fit_model(fit, data, estimate_f1=T)
-  fit$f1$var
-  table(fit$logits > 0, sim$y)
+  fit <- data_initialize_como2(data, f1_params = list(mu=0, var = 25), logreg='logistic_ibss', logreg_params = list(L=1))
+  fit <- fit_model(fit, data, max_iter = 10)
+  fit$logreg$logistic_ibss$cs
 }
 
 

@@ -1,18 +1,19 @@
 
 como2_linear_susie <- function(){
-  sim <- logisticsusie::sim_ser()
+  sim <- logisticsusie:::sim_ser()
   betahat <- rnorm(length(sim$y))
   betahat[sim$y==1] <- rnorm(sum(sim$y == 1), sd=2)
   se <- rep(1, length(sim$y))
 
   data <- prep_data_como2(betahat, se, sim$X, sim$Z)
-  fit <- data_initialize_como2(data, f1_params = list(mu=0, var = 4), logreg='linear_susie')
+  fit <- data_initialize_como2(data, f1_params = list(mu=0, var = 4),
+                               logreg='linear_susie')
   fit <- fit_model(fit, data)
 }
 
 como2_linear_susie <- function(){
-  sim <- logisticsusie::sim_ser()
-  gibss <- with(sim, logisticsusie::generalized_ibss(X, y, L=5))
+  sim <- logisticsusie:::sim_ser()
+  gibss <- with(sim, logisticsusie:::generalized_ibss(X, y, L=5))
 
   betahat <- rnorm(length(sim$y))
   betahat[sim$y==1] <- rnorm(sum(sim$y == 1), sd=5)

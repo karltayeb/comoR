@@ -25,7 +25,7 @@ cFDR(
 }
 \arguments{
 \item{outputlevel}{Determines amount of output. outputlevel=1 provide simplest output (which should be enough for most applications)
-outputlevel= also output the entire mococomo fitted object}
+outputlevel= also output the entire como fitted object}
 }
 \description{
 Main function gathering all the routines for different FDR estimation procedures

@@ -1,7 +1,7 @@
 #'@title Main FDR function
 #'@description Main function gathering all the routines for different FDR estimation procedures
 #' @param outputlevel	 Determines amount of output. outputlevel=1 provide simplest output (which should be enough for most applications)
-#' outputlevel= also output the entire mococomo fitted object
+#' outputlevel= also output the entire como fitted object
 #'@details if the user specifies (betahat, se) then cFDR will fit an covariate
 #' moderated ash model. If the user specifies p-value, then cFDR fits a mixture of betas
 #' which only contains distribution with decreasing density (mostly focusing on fitting the leftmost tails).
@@ -39,20 +39,20 @@ cFDR <- function( betahat,
 
   if( !missing(betahat)& !missing( se)){
     model <- "normal"
-    data <- set_data_mococomo(betahat  = betahat,
+    data <- set_data_como(betahat  = betahat,
                               X = X,
                               se=  se)
-    #fit mococomo model
+    #fit como model
   }
   if(!missing(pvalue)){
     model <- "beta"
-    data <- set_data_mococomo(p = pvalue,
+    data <- set_data_como(p = pvalue,
                               X = X)
   }
 
   if(!missing(zscore)){
     model <- "beta"
-    data <- set_data_mococomo(zscore = zscore, #TODO using U value as in the ZAP paper
+    data <- set_data_como(zscore = zscore, #TODO using U value as in the ZAP paper
                               X = X)
     upper =TRUE
   }
@@ -60,7 +60,7 @@ cFDR <- function( betahat,
   if(verbose){
     print( "Fitting como model")
   }
-  fit =  fit.mococomo(data,
+  fit =  fit.como(data,
                       model      = model,
                       maxiter   = maxiter,
                       tol       = tol,

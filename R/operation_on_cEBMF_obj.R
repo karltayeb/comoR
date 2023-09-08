@@ -393,12 +393,12 @@ update_cEBMF <-  function(cEBMF.obj, k)
   #loading update
   Rk <- cal_partial_residuals.cEBMF(cEBMF.obj,k)
   l_k <- cal_expected_loading( cEBMF.obj, Rk,k)
-  t_data <- set_data_mococomo(betahat = l_k$l_i_hat,
+  t_data <- set_data_como(betahat = l_k$l_i_hat,
                               se      = l_k$s_i,
                               X       = cEBMF.obj$X_l )
-  t_fit <- fit.mococomo(t_data)
+  t_fit <- fit.como(t_data)
 
-  fitted_loading <- post_mean_sd.mococomo (t_fit )
+  fitted_loading <- post_mean_sd.como (t_fit )
 
 
   if( cEBMF.obj$K==1){
@@ -408,17 +408,17 @@ update_cEBMF <-  function(cEBMF.obj, k)
     cEBMF.obj$loading[,k]  <-  fitted_loading$mean
     cEBMF.obj$loading2[,k] <- fitted_loading$sd^2+ fitted_loading$mean^2
   }
-  cEBMF.obj$KL_l[[k]]  <- get_KL.mococomo(t_fit)
+  cEBMF.obj$KL_l[[k]]  <- get_KL.como(t_fit)
 
   #factor update
 
   f_k <- cal_expected_factor( cEBMF.obj,Rk,k)
-  t_data <- set_data_mococomo(betahat = f_k$f_j_hat,
+  t_data <- set_data_como(betahat = f_k$f_j_hat,
                               se      = f_k$s_j,
                               X       = cEBMF.obj$X_f )
-  t_fit <- fit.mococomo(t_data)
+  t_fit <- fit.como(t_data)
 
-  fitted_factor <- post_mean_sd.mococomo (t_fit )
+  fitted_factor <- post_mean_sd.como (t_fit )
 
   if( cEBMF.obj$K==1){
     cEBMF.obj$factor      <-  fitted_factor $mean
@@ -427,7 +427,7 @@ update_cEBMF <-  function(cEBMF.obj, k)
     cEBMF.obj$factor[,k]  <-  fitted_factor $mean
     cEBMF.obj$factor2[,k] <-  fitted_factor$sd^2+ fitted_factor$mean^2
   }
-  cEBMF.obj$KL_f[[k]]  <- get_KL.mococomo(t_fit)
+  cEBMF.obj$KL_f[[k]]  <- get_KL.como(t_fit)
 
   return(cEBMF.obj)
 }

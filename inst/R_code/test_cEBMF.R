@@ -1,27 +1,27 @@
 #rm(list = ls())
-library(logisticsusie)  #Simulate data under the mococomo model
+library(logisticsusie)  #Simulate data under the como model
 library(comoR)
 sim11  <- sim_twococomo(n=1000)#contains all the info
 
 
 #preparing the data
 
-data11 <-set_data_mococomo(betahat = sim11$betahat,
+data11 <-set_data_como(betahat = sim11$betahat,
                            se = sim11$se ,
                            X  = sim11$X)
 sim12  <- sim_twococomo(n=1000)
 
-fit <- fit.mococomo(data11)
-data12 <-set_data_mococomo(betahat = sim12$betahat,
+fit <- fit.como(data11)
+data12 <-set_data_como(betahat = sim12$betahat,
                            se = sim12$se ,
                            X  = sim12$X)
 sim21  <- sim_twococomo(20)
 #preparing the data
-data21 <-set_data_mococomo(betahat = sim21$betahat,
+data21 <-set_data_como(betahat = sim21$betahat,
                            se = sim21$se ,
                            X  = sim21$X)
 sim22  <- sim_twococomo(20)
-data22 <-set_data_mococomo(betahat = sim22$betahat,
+data22 <-set_data_como(betahat = sim22$betahat,
                            se = sim22$se ,
                            X  = sim22$X)
 
@@ -49,24 +49,24 @@ for ( o in 1:4){
   for ( k in 1:K){
     Rk <- cal_partial_residuals.cEBMF(cEBMF.obj,k)
     l_k <- cal_expected_loading( cEBMF.obj, Rk,k)
-    t_data <- set_data_mococomo(betahat = l_k$l_i_hat,
+    t_data <- set_data_como(betahat = l_k$l_i_hat,
                                 se      = l_k$s_i,
                                 X       = cEBMF.obj$X_l )
-    t_fit <- fit.mococomo(t_data)
+    t_fit <- fit.como(t_data)
 
-    fitted_loading <- post_mean_sd.mococomo (t_fit )
+    fitted_loading <- post_mean_sd.como (t_fit )
     cEBMF.obj$loading[,k] <-  fitted_loading$mean
     cEBMF.obj$loading2[,k] <- fitted_loading$sd^2+ fitted_loading$mean^2
 
     #factor update
 
     f_k <- cal_expected_factor( cEBMF.obj, Rk,k)
-    t_data <- set_data_mococomo(betahat = f_k$f_j_hat,
+    t_data <- set_data_como(betahat = f_k$f_j_hat,
                                 se      = f_k$s_j,
                                 X       = cEBMF.obj$X_f )
-    t_fit <- fit.mococomo(t_data)
+    t_fit <- fit.como(t_data)
 
-    fitted_factor <- post_mean_sd.mococomo (t_fit )
+    fitted_factor <- post_mean_sd.como (t_fit )
     cEBMF.obj$factor[,k] <-  fitted_factor $mean
     cEBMF.obj$factor2[,k] <-  fitted_factor$sd^2+ fitted_factor$mean^2
 

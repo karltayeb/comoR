@@ -2,7 +2,7 @@
 
 #' Compute Posterior Assignment Probabilities
 #' For each data point return posterior assignment probabilities
-#' @param fit a MoCoCoMo fit object
+#' @param fit a como fit object
 #' @return an n x K matrix of log posterior probabilities for each data point
 compute_posterior_assignment <- function(fit, data, log = FALSE) {
   data_loglik <- fit$data_loglik
@@ -27,7 +27,7 @@ compute_posterior_assignment <- function(fit, data, log = FALSE) {
 
 #' @title Compute individual posterior variance from marginal normal mean model
 #' @description internal function to compute posterior mean and sds
-t_ind_var.mococomo <- function(fit, i) {
+t_ind_var.como <- function(fit, i) {
   do.call(
     c,
     lapply(
@@ -44,13 +44,13 @@ t_ind_var.mococomo <- function(fit, i) {
 #' @description Compute individual posterior first and second moment
 #'
 #' # TODO: currently only for center prior
-#' @param fit a mococomo object
+#' @param fit a como object
 #' @param  t_ind_var output of t_ind_var (using same mocomo object!)
 #' @param i individual of interest
 #' @exemple
 #' t_post_var <-   do.call(rbind,
 #'                        lapply( 1:length(fit$data$betahat),
-#'                                function(i)t_ind_var.mococomo(fit, i)
+#'                                function(i)t_ind_var.como(fit, i)
 #'                        )
 #' )
 #'
@@ -84,20 +84,20 @@ cal_ind_moment12 <- function(fit, t_post_var, i) {
 
 
 
-#' @title Compute individual posterior mean and sd under mococomo model
-#' @description Compute individual posterior mean and sd under mococomo model
+#' @title Compute individual posterior mean and sd under como model
+#' @description Compute individual posterior mean and sd under como model
 #'
 #' # TODO: allow using new observation from another data set (e.g. testing)
-#' @param fit a mococomo object
+#' @param fit a como object
 #' @export
 #' @example
-#' see \link{\code{fit.mococomo}}
-post_mean_sd.mococomo <- function(fit) {
+#' see \link{\code{fit.como}}
+post_mean_sd.como <- function(fit) {
   t_post_var <- do.call(
     rbind,
     lapply(
       1:length(fit$data$betahat),
-      function(i) t_ind_var.mococomo(fit, i)
+      function(i) t_ind_var.como(fit, i)
     )
   )
   out <- do.call(
@@ -118,10 +118,10 @@ post_mean_sd.mococomo <- function(fit) {
 }
 
 
-#' @title Compute individual fdr value  mococomo model with centered normal mixture
-#' @descriptionCompute individual fdr value  mococomo model with centered normal mixture
+#' @title Compute individual fdr value  como model with centered normal mixture
+#' @descriptionCompute individual fdr value  como model with centered normal mixture
 #'
-#' @param fit a mococomo object
+#' @param fit a como object
 #' @export
 get_fdr <- function(fit) {
   tt1 <- fit$post_assignment[, 1] * dnorm(fit$data$betahat, mean = 0, sd = fit$data$se)
@@ -180,7 +180,7 @@ back_fit_component  <- function( fit, k, new_L){
 }
 
 
-backfit_effect_mococomo <- function(fit, l_dummy_cs){
+backfit_effect_como <- function(fit, l_dummy_cs){
 
   new_L  <- lapply(1:length(fit$logreg_list), function(k )
     max(c(1, fit$logreg_list[[k]]$hypers$L- length(l_dummy_cs[[k]])))

@@ -1,9 +1,9 @@
 # Implements covariate moderated ASH "MOre COmponents COvariate MOderated"
 
-#' @title Function implementation the mococomo mode
-#' @details Function implementation the mococomo mode
+#' @title Function implementation the como mode
+#' @details Function implementation the como mode
 #'
-#' @param data an object of class data_mococomo  see \link{\code{set_data_mococomo}}
+#' @param data an object of class data_como  see \link{\code{set_data_como}}
 #' @param modeltype of model currently supported (normal and beta )
 #' @param maxiter numeric, maximum numerous of iteration set to 100 by defaults
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
@@ -13,19 +13,19 @@
 #' (usefull in small sample size)
 #' @export
 #' @example
-#' #Simulate data under the mococomo model
+#' #Simulate data under the como model
 #' sim  <- sim_twococomo()
 #' #preparing the data
-#' data <- set_data_mococomo(betahat = sim$betahat,
+#' data <- set_data_como(betahat = sim$betahat,
 #'                                se = sim$se ,
 #'                                 X = sim$X)
-#' #fit mococomo model
-#' fit <- fit.mococomo(data, maxiter=20)
+#' #fit como model
+#' fit <- fit.como(data, maxiter=20)
 #' plot(fit$elbo)
 #' .monotone(fit$elbo)
 #'
 #' #get posterior quantities
-#' est<- post_mean_sd.mococomo (fit)
+#' est<- post_mean_sd.como (fit)
 #' head(est)
 #'  plot( est$mean, data$betahat)
 #'
@@ -36,12 +36,12 @@
 #' plot(est$mean, post_mean_ash)
 #' # TODO make a more convincing example
 #'
-#'  sim  <- logisticsusie:::sim_mococomo_beta(n=100)
+#'  sim  <- logisticsusie:::sim_como_beta(n=100)
 #'#preparing the data
-#'data <- set_data_mococomo(p = sim$p,
+#'data <- set_data_como(p = sim$p,
 #'                          X = sim$X)
 #'
-#' fit <- fit.mococomo(data, maxiter=20)
+#' fit <- fit.como(data, maxiter=20)
 
 initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg='constant'){
   # initialize multinomial susie-- but could be any multinomial regression

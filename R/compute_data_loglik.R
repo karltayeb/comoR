@@ -2,7 +2,7 @@
 #' Compute p(betahat_i| z=k, se_i) i = 1..., n, k=1... K
 #' @title Compute data likelihood
 #' @description Compute data likelihood
-#' @param fit an MoCoCoMo fit object
+#' @param fit an como fit object
 #' @return n x K matrix of  log likelihood of each data point for each component
 compute_data_loglikelihood <- function(fit,...){
   UseMethod("compute_data_loglikelihood")

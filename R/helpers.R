@@ -107,8 +107,8 @@ get_all_cs <- function(fit, requested_coverage = 0.95) {
 }
 
 
-#' @title Preparing data for mococomo fit
-#' @details Preparing data for mococomo fit for two type of input p-values or estimated regression coefficients
+#' @title Preparing data for como fit
+#' @details Preparing data for como fit for two type of input p-values or estimated regression coefficients
 #' currently only support one type of entry, whether betahat or p-values
 #'
 #' @param betahat numeric, vector of regression coefficients  list of containing the following element see
@@ -119,8 +119,8 @@ get_all_cs <- function(fit, requested_coverage = 0.95) {
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
 #' @export
 #' @example
-#' see \link{\code{fit.mococomo}}
-set_data_mococomo <- function(betahat, se, p,zscore, X, ...) {
+#' see \link{\code{fit.como}}
+set_data_como <- function(betahat, se, p,zscore, X, ...) {
   if (!is.numeric(X)) {
     stop("X should be numercial vector")
   }
@@ -144,7 +144,7 @@ set_data_mococomo <- function(betahat, se, p,zscore, X, ...) {
       se = se,
       X = X
     )
-    class(dat) <- c("normal", "data_mococomo")
+    class(dat) <- c("normal", "data_como")
   }
 
 
@@ -163,7 +163,7 @@ set_data_mococomo <- function(betahat, se, p,zscore, X, ...) {
       se = rep(1, length(p)),
       X = X
     )
-    class(dat) <- c("beta", "data_mococomo")
+    class(dat) <- c("beta", "data_como")
   }
   if (!missing(zscore)) {
     if (!is.numeric(zscore)) {
@@ -179,7 +179,7 @@ set_data_mococomo <- function(betahat, se, p,zscore, X, ...) {
       X = X,
       zscore=zscore
     )
-    class(dat) <- c("beta", "data_mococomo")
+    class(dat) <- c("beta", "data_como")
   }
 
   return(dat)
@@ -239,12 +239,12 @@ set_xi <- function(fit, xi) {
 }
 
 
-# fit a mococomo object
+# fit a como object
 # cs an object computed using get_all_cs
 # X matrix of covariate
 # min.purity minimum purity level
 
-which_dummy_cs_mococomo <- function( cs, X,min.purity){
+which_dummy_cs_como <- function( cs, X,min.purity){
   dummy.cs <- list()
   for ( k in 1:length(cs)){
     dummy.cs[[k]] <- NULL

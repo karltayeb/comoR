@@ -1,12 +1,12 @@
-#' @param fit a fitted mococomo object
+#' @param fit a fitted como object
 #' @param outputlevel	 Determines amount of output. outputlevel=1 provide simplest output (which should be enough for most applications)
-#' outputlevel= also output the entire mococomo fitted object
+#' outputlevel= also output the entire como fitted object
 #'
 #'
  # TODO work on presentation of the output
 prep_out_FDR_wrapper <- function(fit, outputlevel=1,n_sim ){
   if(fit$model=="normal"){
-    est    <- post_mean_sd.mococomo (fit)
+    est    <- post_mean_sd.como (fit)
     lfdr   <- get_lfdr_mixnorm(fit)
     qvalue <- cal_qvalue(lfdr)
     resdf <- data.frame(betahat       = fit$data$betahat,
@@ -24,7 +24,7 @@ prep_out_FDR_wrapper <- function(fit, outputlevel=1,n_sim ){
 
       lfdr   <- get_lfdr_beta(fit)
       qvalue <- cal_qvalue(lfdr)
-      FDR <- assesor.mococomo_beta(fit,n_sim=n_sim )
+      FDR <- assesor.como_beta(fit,n_sim=n_sim )
       if("p"%in% names(fit$data)){
         resdf <- data.frame(p       = fit$data$p,
                             lfdr    = lfdr,
@@ -99,10 +99,10 @@ cal_qvalue <- function(lfdr)
 }
 
 
-assesor.mococomo_beta <- function(fit,n_sim){
+assesor.como_beta <- function(fit,n_sim){
 
-  up <- exp(compute_assignment_jj_bound.mococomo(fit))[,1]
-  tt <-exp(compute_assignment_jj_bound.mococomo(fit))
+  up <- exp(compute_assignment_jj_bound.como(fit))[,1]
+  tt <-exp(compute_assignment_jj_bound.como(fit))
   tt2 <- 1- apply(tt,1,sum)
   low <-  up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
 

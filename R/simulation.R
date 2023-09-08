@@ -191,18 +191,18 @@ sim_susie <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0, idx = NUL
 #' @param beta numeric if of length 1 assume that ervery effect have same beta coefficietns
 #' otherwise should be  of length L, if missing beta <- seq(L) * .2
 #' @export
-sim_twococomo <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0) {
+sim_twococomo <- function(n = 1000, p = 50, L = 3, N = 1, beta ) {
   if (missing(beta)) {
-    sim <- sim_susie(n, p, L, N, alpha = alpha)
+    sim <- sim_susie(n=n, p=p, L=L, N=N )
   } else {
-    sim <- sim_susie(n, p, L, N, beta, alpha = alpha)
+    sim <- sim_susie(n=n, p=p, L=L, N=N , beta=beta  )
   }
 
   sim$beta <- rnorm(n) * sim$y
   sim$se <- 0.1 + rgamma(n, shape = 0.5)
   sim$betahat <- sim$beta + rnorm(n) * sim$se
 
-  class(sim) <- c("normal", "data_mococomo")
+  class(sim) <- c("normal", "data_como")
   return(sim)
 }
 
@@ -229,7 +229,7 @@ sim_twococomo_sparse <- function(n = 1000, p = 50, L = 3, N = 1) {
   sim$se <- 0.1 + rgamma(n, shape = 0.5)
   sim$betahat <- sim$beta + rnorm(n) * sim$se
 
-  class(sim) <- c("normal", "data_mococomo")
+  class(sim) <- c("normal", "data_como")
   return(sim)
 }
 
@@ -250,7 +250,7 @@ sim_mn_susie <- function(n = 1000, p = 50, L = 3, N = 1, K = 10) {
 }
 
 #' @export
-sim_mococomo <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0) {
+sim_como <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0) {
   if (missing(beta)) {
     sim <- sim_susie(n, p, L, N, alpha = alpha)
   } else {
@@ -260,20 +260,20 @@ sim_mococomo <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0) {
   sim$beta <- rnorm(n) * sim$y * sample(sim$scales, size = n, replace = T)
   sim$se <- 0.1 + rgamma(n, shape = 0.5)
   sim$betahat <- sim$beta + rnorm(n) * sim$se
-  class(sim) <- c("normal", "data_mococomo")
+  class(sim) <- c("normal", "data_como")
   return(sim)
 }
 
-#' @title Simulate data under mococomo model with beta distribution
-#' @details Simulate data under mococomo model with beta distribution
+#' @title Simulate data under como model with beta distribution
+#' @details Simulate data under como model with beta distribution
 #' @export
 
 
-sim_mococomo_beta <- function(n = 1000, p = 50, L = 3, N = 1, beta) {
+sim_como_beta <- function(n = 1000, p = 50, L = 3, N = 1, beta) {
   if (missing(beta)) {
-    sim <- sim_mococomo(n = n, p = p, L = L, N = N)
+    sim <- sim_como(n = n, p = p, L = L, N = N)
   } else {
-    sim <- sim_mococomo(n = n, p = p, L = L, N = N, beta = beta)
+    sim <- sim_como(n = n, p = p, L = L, N = N, beta = beta)
 
   }
 

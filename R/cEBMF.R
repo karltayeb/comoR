@@ -21,7 +21,7 @@ cEBMF <- function( Y, X_l,X_f,K=1, type_noise='constant',init_type="udv_si", max
                            K=K,
                            type_noise=type_noise,
                            init_type= init_type
-                           )
+                           )### Need to carry info about como obj
 
   for (i in 1:maxit) {
     cEBMF.obj <- cEBMF_iter  (cEBMF.obj)

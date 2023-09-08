@@ -129,3 +129,8 @@ compute_elbo.como <- function(fit, data) {
 }
 
 
+
+#' @export
+fit.como <- function(x, ...){
+  return(fit_model(x, ...))
+}

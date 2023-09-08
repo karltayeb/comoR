@@ -6,12 +6,21 @@ sim11  <- sim_twococomo(n=1000)#contains all the info
 
 #preparing the data
 
+
+fit <- data_initialize_como (data11)
+
+
 data11 <-set_data_como(betahat = sim11$betahat,
-                           se = sim11$se ,
-                           X  = sim11$X)
+                       se = sim11$se ,
+                       X  = sim11$X) # prepare the data
+fit <- data_initialize_como(data11, max_class=5, scales = c(0, 1, 5, 10)) # initialize the model from the data
+fit <- fit_model(fit, data, max_iter = 10)
+
+
+
+
 sim12  <- sim_twococomo(n=1000)
 
-fit <- fit.como(data11)
 data12 <-set_data_como(betahat = sim12$betahat,
                            se = sim12$se ,
                            X  = sim12$X)
@@ -52,7 +61,10 @@ for ( o in 1:4){
     t_data <- set_data_como(betahat = l_k$l_i_hat,
                                 se      = l_k$s_i,
                                 X       = cEBMF.obj$X_l )
-    t_fit <- fit.como(t_data)
+
+    t_fit <- data_initialize_como(t_data, max_class=5, scales = c(0, 1, 5, 10)) # initialize the model from the data
+    t_fit <- fit_model( t_fit, t_data, max_iter = 10)
+
 
     fitted_loading <- post_mean_sd.como (t_fit )
     cEBMF.obj$loading[,k] <-  fitted_loading$mean

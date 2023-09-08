@@ -48,7 +48,7 @@ william_example <- function(){
   boxplot(obs~mix)
 
   data <- prep_data_como2(obs, se, X, Z = matrix(rep(1, N), nrow=N))
-  fit <- data_initialize_como2(data, L=5)
+  fit <- data_initialize_como2(data, logreg='logistic_ibss',logreg_params = list(L=5))
 
   fit <- update_model(fit, data, estimate_f1 = F)
   fit <- fit_model(fit, data, estimate_f1=T)
@@ -67,6 +67,7 @@ william_example <- function(){
   data <- set_data_mococomo(betahat = obs,
                             X = X,
                             se= se)
+
   fit <- fit.mococomo(data, maxiter=20)
   cs <- lapply( 1:length(fit$logreg_list),
                 function(k)

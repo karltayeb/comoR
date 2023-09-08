@@ -9,9 +9,8 @@
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
 #' @param upper, logical, set to FALSE by default. Specific to beta distribution.
 #'  If true use a to set of mixture for fitting both end of the of the distribution as in the ZAP paper by Leung and Sunn
-#' @param nullweight  numeric value for penalizing likelihood at point mass 0/null component (should be larger than  1, 1 corresponds to no penalty , 2 corresponds to considering 1 individual "being null" and so on)
+#' @parma nullweight  numeric value for penalizing likelihood at point mass 0/null component (should be larger than  1, 1 corresponds to no penalty , 2 corresponds to considering 1 individual "being null" and so on)
 #' (usefull in small sample size)
-#' @param min.purity numeric, minimum purity per CS
 #' @export
 #' @example
 #' #Simulate data under the mococomo model
@@ -44,54 +43,89 @@
 #'
 #' fit <- fit.mococomo(data, maxiter=20)
 
+initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg='constant'){
+  # initialize multinomial susie-- but could be any multinomial regression
+  K <- length(scales)
 
-# TODO modulate L and decreasing number of CS if obviously dummy cs
-fit.mococomo <- function(data,
-                         model      = "normal",
-                         maxiter    = 100,
-                         tol        = 1e-3,
-                         max_class  = 10,
-                         mult       = 2,
-                         upper      = FALSE,
-                         nullweight,
-                         min.purity = 0.5,
-                         backfit    = TRUE) {
-
-  if("data_mococomo"%!in% class(data))
-  {stop("Please provide object of class data_mococomo")}
-  if(missing( nullweight)){
-    nullweight <- 4
+  if(mnreg == 'constant'){
+    mnreg <- initialize_constant_mnreg(K)
   }
 
-  fit <- init.mococomo(data       = data,
-                       model      = model,
-                       max_class  = max_class,
-                       mult       = mult,
-                       upper      = upper,
-                       nullweight = nullweight,
-                       backfit    = backfit,
-                       min.purity = min.purity
-                       )
+  #mn_reg <- logisticsusie:::initialize_sbmn_susie(K, n, p, p2, L, mu0, var0)
 
+  # initialize_scales
+  f_list <- purrr::map(scales, ~ normal_component(mu = 0, var = .x^2))
 
-    fit$elbo <- compute_elbo.mococomo(fit)
+  fit <- list(
+    mnreg = mnreg, # multinomial regression function. takes X, returns pi
+    f_list = f_list, # component distributions
+    nullweight = nullweight, # penalty promoting the first component,
+    K = K,
+    elbo = -Inf
+  )
+  class(fit) <- c('como')
+  return(fit)
+}
 
+#' Use data to autoselect scales
+data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nullweight=0) {
+  como_check_data(data)
 
-  for (i in 1:maxiter) {
+  if(is.null(scales)){
+    scales <- autoselect_scales(data$betahat, data$se, max_class)
+  }
 
-    fit <- iter.mococomo(fit,
-                         update_assignment =is.even(i),
-                         update_logreg = is.odd(i))
-     # start to monitor convergence after discarding dummy CS,
-    #reset ELBO to -INF when stopping backfting
-    fit$elbo <- c(fit$elbo, compute_elbo.mococomo(fit))
+  K <- length(scales) # K <= max_class
+  p <- ncol(data$X)
+  n <- nrow(data$X)
+  p2 <- ncol(data$Z)
 
-    # print(paste('asgn:', is.even(i), 'logreg:', is.odd(i), 'elbo: ', tail(fit$elbo, 1)))
-    if (.converged(fit, tol)) {
-      break
-    }
+  fit <- initialize_como(scales, n, p, p2, mu0, var0, nullweight)
+  return(fit)
+}
+
+#' @export
+update_model.como <- function(fit, data, update_assignment = T, update_logreg=T, fit_prior_variance=F, track_elbo=T){
+  K <- fit$K
+
+  # pre-compute data likelihood, if we haven't already
+  # TODO: use digest::digest to hash the scales and recompute if scales change?
+  if(is.null(fit$data_loglik)){
+    fit$data_loglik <- compute_data_loglikelihood(fit, data)
+  }
+
+  # updates posterior assignments probabilities
+  # these are the response variable for mn_regression
+  if (update_assignment) {
+    fit$post_assignment <- compute_posterior_assignment(fit, data)
+    #data$Y <- fit$post_assignment
+    #data$Nk <- logisticsusie:::stick_breaking_N(data$Y)
+  }
+
+  if (update_logreg) {
+    fit$mnreg <- update_prior(fit$mnreg, fit$post_assignment)
+  }
+
+  if (track_elbo){
+    fit$elbo <- c(fit$elbo, compute_elbo(fit, data))
   }
   return(fit)
+}
+
+#' @export
+compute_elbo.como <- function(fit, data) {
+  # E[log p(beta | y)] -- expected data likelihood
+  ll <- sum(fit$post_assignment * fit$data_loglik)
+
+  # Entropy term # E[-log q(y)]
+  assignment_entropy <- sum(apply(fit$post_assignment, 1, logisticsusie:::categorical_entropy))
+
+  # E[log p(y | X, theta)] - KL[q(theta) || p(theta)] SuSiE ELBO
+  elbo <- compute_elbo(fit$mnreg, fit$post_assignment, data)
+
+  # put it all together
+  elbo <- ll - assignment_entropy + elbo
+  return(elbo)
 }
 
 

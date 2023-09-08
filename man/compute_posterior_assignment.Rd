@@ -5,7 +5,7 @@
 \title{Compute Posterior Assignment Probabilities
 For each data point return posterior assignment probabilities}
 \usage{
-compute_posterior_assignment(fit, log = TRUE)
+compute_posterior_assignment(fit, data, log = FALSE)
 }
 \arguments{
 \item{fit}{a MoCoCoMo fit object}

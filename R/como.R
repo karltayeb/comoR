@@ -50,6 +50,14 @@ initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg
   if(mnreg == 'constant'){
     mnreg <- initialize_constant_mnreg(K)
   }
+  if( mnreg== "mult_reg"){
+
+    mnreg <- initialize_mnreg (mnreg_type = mnreg_type,
+                               K          = K,
+                               n          = n,
+                               p          = p)
+
+  }
 
   #mn_reg <- logisticsusie:::initialize_sbmn_susie(K, n, p, p2, L, mu0, var0)
 
@@ -68,7 +76,7 @@ initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg
 }
 
 #' Use data to autoselect scales
-data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nullweight=0) {
+data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nullweight=0,  mnreg='constant') {
   como_check_data(data)
 
   if(is.null(scales)){
@@ -80,7 +88,7 @@ data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nu
   n <- nrow(data$X)
   p2 <- ncol(data$Z)
 
-  fit <- initialize_como(scales, n, p, p2, mu0, var0, nullweight)
+  fit <- initialize_como(scales, n, p, p2, mu0, var0, nullweight,  mnreg=mnreg)
   return(fit)
 }
 
@@ -103,7 +111,7 @@ update_model.como <- function(fit, data, update_assignment = T, update_logreg=T,
   }
 
   if (update_logreg) {
-    fit$mnreg <- update_prior(fit$mnreg, fit$post_assignment)
+    fit$mnreg <- update_prior(fit$mnreg, resps=fit$post_assignment, data=data)
   }
 
   if (track_elbo){
@@ -133,4 +141,18 @@ compute_elbo.como <- function(fit, data) {
 #' @export
 fit.como <- function(x, ...){
   return(fit_model(x, ...))
+}
+
+
+get_KL.como <- function(fit,data){
+  ll <- sum(fit$post_assignment * fit$data_loglik)
+
+  # Entropy term # E[-log q(y)]
+  assignment_entropy <- sum(apply(fit$post_assignment, 1, logisticsusie:::categorical_entropy))
+
+  # E[log p(y | X, theta)] - KL[q(theta) || p(theta)] SuSiE ELBO
+
+  # put it all together
+  KL <- -ll + assignment_entropy
+  return(KL)
 }

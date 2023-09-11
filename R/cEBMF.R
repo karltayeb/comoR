@@ -13,14 +13,25 @@
 #'
 #'
 
-cEBMF <- function( Y, X_l,X_f,K=1, type_noise='constant',init_type="udv_si", maxit=100,  tol=1e-3  ){
+cEBMF <- function( Y,
+                   X_l,
+                   X_f,
+                   K=1,
+                   type_noise='constant',
+                   init_type="udv_si",
+                   maxit=100,
+                   tol=1e-3 ,
+                   param_como = list(max_class=10,mnreg="mult_reg"),
+                   maxit_como = 10){
 
   cEBMF.obj <- init_cEBMF (Y,
                            X_l,
                            X_f,
                            K=K,
                            type_noise=type_noise,
-                           init_type= init_type
+                           init_type= init_type,
+                           param_como=param_como,
+                           maxit_como = maxit_como
                            )### Need to carry info about como obj
 
   for (i in 1:maxit) {
@@ -29,6 +40,7 @@ cEBMF <- function( Y, X_l,X_f,K=1, type_noise='constant',init_type="udv_si", max
       break
     }
   }
+  plot( cEBMF.obj$elbo)
   cEBMF.obj <- out_prep.cEBMF(cEBMF.obj)
   return(cEBMF.obj)
 }

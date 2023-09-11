@@ -54,7 +54,7 @@ plot(cEBMF.obj$loading[,1] ,data11$betahat)
 
 
 
-for ( o in 1:4){
+for ( o in 1:20){
   for ( k in 1:K){
     Rk <- cal_partial_residuals.cEBMF(cEBMF.obj,k)
     l_k <- cal_expected_loading( cEBMF.obj, Rk,k)
@@ -66,19 +66,21 @@ for ( o in 1:4){
     t_fit <- fit_model( t_fit, t_data, max_iter = 10)
 
 
-    fitted_loading <- post_mean_sd.como (t_fit )
+    fitted_loading <- post_mean_sd.como (fit= t_fit, data=t_data )
     cEBMF.obj$loading[,k] <-  fitted_loading$mean
     cEBMF.obj$loading2[,k] <- fitted_loading$sd^2+ fitted_loading$mean^2
 
     #factor update
 
     f_k <- cal_expected_factor( cEBMF.obj, Rk,k)
-    t_data <- set_data_como(betahat = f_k$f_j_hat,
+    t_data <- set_data_como(betahat    = f_k$f_j_hat,
                                 se      = f_k$s_j,
                                 X       = cEBMF.obj$X_f )
-    t_fit <- fit.como(t_data)
+    t_fit <- data_initialize_como(t_data, max_class=5, scales = c(0, 1, 5, 10)) # initialize the model from the data
+    t_fit <- fit_model( t_fit, t_data, max_iter = 10)
 
-    fitted_factor <- post_mean_sd.como (t_fit )
+
+    fitted_factor <- post_mean_sd.como (fit= t_fit, data=t_data )
     cEBMF.obj$factor[,k] <-  fitted_factor $mean
     cEBMF.obj$factor2[,k] <-  fitted_factor$sd^2+ fitted_factor$mean^2
 
@@ -94,7 +96,7 @@ for ( o in 1:4){
 
 
 Y_est <- cEBMF.obj$loading[,1]%*%t(cEBMF.obj$factor[,1])+cEBMF.obj$loading[,2]%*%t(cEBMF.obj$factor[,2])
-library(flashr)
+library(flashier)
 f <- flash(Y)
 plot( Y_est, Y )
 plot( Y_true, Y )
@@ -104,7 +106,7 @@ cor( c(Y_true), c(Y_est))
 cor( c(Y_true), c(Y))
 
 
-
+cor( c(Y_true), c(fitted(f)))
 
 
 

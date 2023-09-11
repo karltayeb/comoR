@@ -71,46 +71,44 @@ compute_elbo.constant_mnreg <- function(mnreg, resps, data){
 }
 
 
-# Another model------------
+#Multinomial/ NNET model------------
+initialize_mnreg  <- function(mnreg_type,K, n,  p){
 
-
-# SuSiE prior------------
-
-
-update_prior.mult_reg<- function(mnreg, resps, data){
-  new_log_pis <- mult_reg (resps, X=data$X)$logpi
-  mnreg$logpi <- new_log_pis
-  mnreg$coef <- coef
+  tt <- nnet::nnet (y = matrix (1/K, nrow=n, ncol = K),
+                    x =matrix (rnorm(n*p), nrow=n, ncol = p),
+                    size=1,
+                    softmax=TRUE  ,trace=FALSE   )
+  logpi <- log(tt$fitted.values )
+  coef  <- tt
+  mnreg  <- list(logpi=logpi, K=K, coef=coef)
+  class(mnreg) <- 'mult_reg'
 
   return(mnreg)
 }
+update_prior.mult_reg<- function(mnreg, resps, data, size=1, decay=1){
+  X  = as.matrix(data$X)
+  tt <- nnet::nnet (y = resps,
+              x = X,
+              size=size,
+              decay=decay,
+              softmax=TRUE  ,trace=FALSE    )
+  mnreg$logpi <- log(tt$fitted.values)
+  mnreg$coef  <- tt
 
+  return(mnreg)
+}
 compute_log_prior_assignment.mult_reg <- function(mnreg, data){
 
   X <- data$X
-  tt <-   cbind(rep(1,nrow(X)),X)%*%   coef
-  fitted_pi <-  cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
+  fitted_pi <-predict(mnreg$coef, X)# in case of multinomial cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
   logpi <- log( fitted_pi)
   return(logpi)
 }
 
+# SuSiE prior------------
 
 
 
 
-mult_reg <-  function(assign_mat,X){
-
-  coef <- do.call(cbind,
-                  lapply(2:(ncol(assign_mat) ),
-                         function(k) lm( log(assign_mat[,k]/assign_mat[,1])~X)$coefficients
-                  )
-  )
 
 
-  tt <-   cbind(rep(1,nrow(X)),X)%*%   coef
-  fitted_pi <- cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
-
-  out <- list( logpi=log(fitted_pi),
-               coef=coef )
-  return(out)
-}

@@ -12,7 +12,7 @@
 #'  @param type_noise specify which kind of noise structure is expected, currently three choices. Whether noise constant accross column ('column_wise'), constant 'constant' or constant across rown 'row_wise'
 #'  @param init_type specify initialisation method for loading and factor, methods includes: "udv", "udv_si_svd", "si" (softimpute), "ones" and "rand_udv"
 #' @return a cEBMF object
-init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si" )
+init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si",param_como,maxit_como )
 {
 
 
@@ -42,7 +42,9 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      param_como = param_como,
+      maxit_como = maxit_como
 
     )
   }
@@ -78,7 +80,9 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      param_como = param_como,
+      maxit_como = maxit_como
 
     )
   }
@@ -109,7 +113,9 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      param_como = param_como,
+      maxit_como = maxit_como
 
     )
   }
@@ -142,7 +148,9 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      param_como = param_como,
+      maxit_como = maxit_como
 
     )
   }
@@ -174,7 +182,9 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_loading = list(), #susie param for each loading
       KL_l          = list(),
       param_factor  = list(),  #susie param for each factor
-      KL_f          = list()
+      KL_f          = list(),
+      param_como = param_como,
+      maxit_como = maxit_como
 
     )
   }
@@ -195,7 +205,6 @@ cEBMF_iter <- function(cEBMF.obj){
     cEBMF.obj <- update_cEBMF(cEBMF.obj, k)
 
   }
-  cEBMF.obj <- update_tau.cEBMF (cEBMF.obj)
   #cEBMF.obj$tau
 
   cEBMF.obj <- update_elbo.cEBMF(cEBMF.obj)
@@ -389,18 +398,16 @@ update_elbo.cEBMF <- function( cEBMF.obj){
 #'
 update_cEBMF <-  function(cEBMF.obj, k)
 {
-
-  #loading update
   Rk <- cal_partial_residuals.cEBMF(cEBMF.obj,k)
   l_k <- cal_expected_loading( cEBMF.obj, Rk,k)
   t_data <- set_data_como(betahat = l_k$l_i_hat,
-                              se      = l_k$s_i,
-                              X       = cEBMF.obj$X_l )
-  t_fit <- fit.como(t_data)
+                          se      = l_k$s_i,
+                          X       = cEBMF.obj$X_l )
+  t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como , data= t_data ) # initialize the model from the data
+  t_fit <- fit_model( t_fit, t_data, max_iter = max_iter_como )
 
-  fitted_loading <- post_mean_sd.como (t_fit )
 
-
+  fitted_loading <- post_mean_sd.como (fit= t_fit, data=t_data )
   if( cEBMF.obj$K==1){
     cEBMF.obj$loading      <-  fitted_loading$mean
     cEBMF.obj$loading2     <- fitted_loading$sd^2+ fitted_loading$mean^2
@@ -408,18 +415,17 @@ update_cEBMF <-  function(cEBMF.obj, k)
     cEBMF.obj$loading[,k]  <-  fitted_loading$mean
     cEBMF.obj$loading2[,k] <- fitted_loading$sd^2+ fitted_loading$mean^2
   }
-  cEBMF.obj$KL_l[[k]]  <- get_KL.como(t_fit)
 
   #factor update
-
-  f_k <- cal_expected_factor( cEBMF.obj,Rk,k)
+  f_k <- cal_expected_factor( cEBMF.obj, Rk,k)
   t_data <- set_data_como(betahat = f_k$f_j_hat,
-                              se      = f_k$s_j,
-                              X       = cEBMF.obj$X_f )
-  t_fit <- fit.como(t_data)
+                          se      = f_k$s_j,
+                          X       = cEBMF.obj$X_f )
+  t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como , data= t_data ) # initialize the model from the data
+  t_fit <- fit_model( t_fit, t_data, max_iter = max_iter_como )
 
-  fitted_factor <- post_mean_sd.como (t_fit )
 
+  fitted_factor <- post_mean_sd.como (fit= t_fit, data=t_data )
   if( cEBMF.obj$K==1){
     cEBMF.obj$factor      <-  fitted_factor $mean
     cEBMF.obj$factor2     <-  fitted_factor$sd^2+ fitted_factor$mean^2
@@ -427,7 +433,9 @@ update_cEBMF <-  function(cEBMF.obj, k)
     cEBMF.obj$factor[,k]  <-  fitted_factor $mean
     cEBMF.obj$factor2[,k] <-  fitted_factor$sd^2+ fitted_factor$mean^2
   }
-  cEBMF.obj$KL_f[[k]]  <- get_KL.como(t_fit)
+  cEBMF.obj<- update_tau.cEBMF (cEBMF.obj )
+
+
 
   return(cEBMF.obj)
 }

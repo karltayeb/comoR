@@ -11,7 +11,7 @@ rm(list=ls())
                             beta0=-2
                             beta1=2
                             max_class=10
-                            noise_level= 3
+                            noise_level= 5
                             max_iter_cEBMF=20
                             max_iter_como=20
 
@@ -63,7 +63,8 @@ rm(list=ls())
                  K=K, init_type = "udv_si",
                  param_como = list(max_class=max_class,mnreg="mult_reg"),
                  maxit_como =max_iter_como ,
-                 maxit=10)
+                 maxit=10,
+                 param_nnet= list(size=3, decay=1.2))
 
 
 
@@ -89,7 +90,9 @@ rm(list=ls())
       t_data <- set_data_como(betahat = l_k$l_i_hat,
                               se      = l_k$s_i,
                               X       = cEBMF.obj$X_l )
-      t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como , data= t_data ) # initialize the model from the data
+      t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como ,
+                             data= t_data,
+                             param_nnet=cEBMF.obj$param_nnet) # initialize the model from the data
       t_fit <- fit_model( t_fit, t_data, max_iter = max_iter_como )
 
 
@@ -103,7 +106,9 @@ rm(list=ls())
       t_data <- set_data_como(betahat = f_k$f_j_hat,
                               se      = f_k$s_j,
                               X       = cEBMF.obj$X_f )
-      t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como , data= t_data ) # initialize the model from the data
+      t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como ,
+                             data= t_data,
+                             param_nnet=cEBMF.obj$param_nnet)# initialize the model from the data
       t_fit <- fit_model( t_fit, t_data, max_iter = max_iter_como )
 
 

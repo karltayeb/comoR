@@ -43,7 +43,16 @@
 #'
 #' fit <- fit.como(data, maxiter=20)
 
-initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg='constant'){
+initialize_como <- function(scales,
+                            n,
+                            p,
+                            p2,
+                            mu0=0,
+                            var0=1,
+                            nullweight=0,
+                            mnreg='constant',
+                            param_nnet =list( size=1, decay=1)
+                            ){
   # initialize multinomial susie-- but could be any multinomial regression
   K <- length(scales)
 
@@ -55,7 +64,8 @@ initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg
     mnreg <- initialize_mnreg (mnreg_type = mnreg_type,
                                K          = K,
                                n          = n,
-                               p          = p)
+                               p          = p,
+                               param_nnet = param_nnet)
 
   }
 
@@ -76,7 +86,13 @@ initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg
 }
 
 #' Use data to autoselect scales
-data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nullweight=0,  mnreg='constant') {
+data_initialize_como <- function(data, max_class,
+                                 scales=NULL,
+                                 mu0=0,
+                                 var0=1,
+                                 nullweight=0,
+                                 mnreg='constant',
+                                 param_nnet =list( size=1, decay=1)) {
   como_check_data(data)
 
   if(is.null(scales)){
@@ -88,7 +104,15 @@ data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nu
   n <- nrow(data$X)
   p2 <- ncol(data$Z)
 
-  fit <- initialize_como(scales, n, p, p2, mu0, var0, nullweight,  mnreg=mnreg)
+  fit <- initialize_como(scales=scales,
+                         n=n,
+                         p=p,
+                         p2=p2,
+                         mu0=mu0,
+                         var0=var0,
+                         nullweight,
+                         mnreg=mnreg,
+                         param_nnet=param_nnet)
   return(fit)
 }
 

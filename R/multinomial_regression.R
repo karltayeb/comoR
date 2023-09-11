@@ -72,26 +72,34 @@ compute_elbo.constant_mnreg <- function(mnreg, resps, data){
 
 
 #Multinomial/ NNET model------------
-initialize_mnreg  <- function(mnreg_type,K, n,  p){
+initialize_mnreg  <- function(mnreg_type,K, n,  p,param_nnet=list( size=1, decay=1)){
 
-  tt <- nnet::nnet (y = matrix (1/K, nrow=n, ncol = K),
+
+  tt <-rlang::exec( "nnet",
+                    !!! param_nnet ,
+                    y = matrix (1/K, nrow=n, ncol = K),
                     x =matrix (rnorm(n*p), nrow=n, ncol = p),
-                    size=1,
-                    softmax=TRUE  ,trace=FALSE   )
+                    softmax=TRUE  ,
+                    trace=FALSE )
+
   logpi <- log(tt$fitted.values )
   coef  <- tt
-  mnreg  <- list(logpi=logpi, K=K, coef=coef)
+  mnreg  <- list(logpi=logpi,
+                 K=K,
+                 coef=coef,
+                 param_nnet=param_nnet)
   class(mnreg) <- 'mult_reg'
 
   return(mnreg)
 }
-update_prior.mult_reg<- function(mnreg, resps, data, size=1, decay=1){
+update_prior.mult_reg<- function(mnreg, resps, data   ){
   X  = as.matrix(data$X)
-  tt <- nnet::nnet (y = resps,
-              x = X,
-              size=size,
-              decay=decay,
-              softmax=TRUE  ,trace=FALSE    )
+  tt <-rlang::exec( "nnet",
+                    !!!mnreg$param_nnet ,
+                    y = resps,
+                    x = X,
+                    softmax=TRUE  ,
+                    trace=FALSE )
   mnreg$logpi <- log(tt$fitted.values)
   mnreg$coef  <- tt
 

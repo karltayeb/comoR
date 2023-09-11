@@ -12,7 +12,12 @@
 #'  @param type_noise specify which kind of noise structure is expected, currently three choices. Whether noise constant accross column ('column_wise'), constant 'constant' or constant across rown 'row_wise'
 #'  @param init_type specify initialisation method for loading and factor, methods includes: "udv", "udv_si_svd", "si" (softimpute), "ones" and "rand_udv"
 #' @return a cEBMF object
-init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si",param_como,maxit_como )
+init_cEBMF <- function(Y, X_l,X_f,K=1,
+                       type_noise= "constant",
+                       init_type="udv_si",
+                       param_como,
+                       maxit_como,
+                       param_nnet=list( size=1, decay=1))
 {
 
 
@@ -44,7 +49,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_factor  = list(),  #susie param for each factor
       KL_f          = list(),
       param_como = param_como,
-      maxit_como = maxit_como
+      maxit_como = maxit_como,
+      param_nnet = param_nnet
 
     )
   }
@@ -82,8 +88,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_factor  = list(),  #susie param for each factor
       KL_f          = list(),
       param_como = param_como,
-      maxit_como = maxit_como
-
+      maxit_como = maxit_como,
+      param_nnet = param_nnet
     )
   }
   if(init_type=="udv"){
@@ -115,7 +121,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_factor  = list(),  #susie param for each factor
       KL_f          = list(),
       param_como = param_como,
-      maxit_como = maxit_como
+      maxit_como = maxit_como,
+      param_nnet = param_nnet
 
     )
   }
@@ -150,7 +157,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_factor  = list(),  #susie param for each factor
       KL_f          = list(),
       param_como = param_como,
-      maxit_como = maxit_como
+      maxit_como = maxit_como,
+      param_nnet = param_nnet
 
     )
   }
@@ -184,7 +192,8 @@ init_cEBMF <- function(Y, X_l,X_f,K=1, type_noise= "constant",init_type="udv_si"
       param_factor  = list(),  #susie param for each factor
       KL_f          = list(),
       param_como = param_como,
-      maxit_como = maxit_como
+      maxit_como = maxit_como,
+      param_nnet = param_nnet
 
     )
   }
@@ -403,7 +412,9 @@ update_cEBMF <-  function(cEBMF.obj, k)
   t_data <- set_data_como(betahat = l_k$l_i_hat,
                           se      = l_k$s_i,
                           X       = cEBMF.obj$X_l )
-  t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como , data= t_data ) # initialize the model from the data
+  t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como ,
+                         data= t_data,
+                         param_nnet=cEBMF.obj$param_nnet) # initialize the model from the data
   t_fit <- fit_model( t_fit, t_data, max_iter = max_iter_como )
 
 
@@ -421,7 +432,10 @@ update_cEBMF <-  function(cEBMF.obj, k)
   t_data <- set_data_como(betahat = f_k$f_j_hat,
                           se      = f_k$s_j,
                           X       = cEBMF.obj$X_f )
-  t_fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como , data= t_data ) # initialize the model from the data
+  t_fit <-  rlang::exec( "data_initialize_como",
+                         !!!cEBMF.obj$param_como ,
+                         data= t_data ,
+                         param_nnet=cEBMF.obj$param_nnet)  # initialize the model from the data
   t_fit <- fit_model( t_fit, t_data, max_iter = max_iter_como )
 
 

@@ -22,6 +22,7 @@ cEBMF <- function( Y,
                    maxit=100,
                    tol=1e-3 ,
                    param_como = list(max_class=10,mnreg="mult_reg"),
+                   param_nnet =list( size=1, decay=1),
                    maxit_como = 10){
 
   cEBMF.obj <- init_cEBMF (Y,
@@ -31,7 +32,8 @@ cEBMF <- function( Y,
                            type_noise=type_noise,
                            init_type= init_type,
                            param_como=param_como,
-                           maxit_como = maxit_como
+                           maxit_como = maxit_como,
+                           param_nnet = param_nnet
                            )### Need to carry info about como obj
 
   for (i in 1:maxit) {

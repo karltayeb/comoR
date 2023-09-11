@@ -130,7 +130,7 @@ rm(list=ls())
   )
   )
   f <- flashier::flash(Y_obs)
-  plot( fitted(f), Y_true)
+  plot( fitted(f), Y_true, xlim= c(-5,5), ylim= c(-5,5))
     points( Y_est, Y_true, col="green")
     points(res$Y_fit
            ,Y_true, col="blue")

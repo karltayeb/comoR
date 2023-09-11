@@ -89,7 +89,8 @@ cal_purity.como2  <- function(fit,data){
     if(l_cs[[k]]$size==1 ){
       tt[[k]] <- 1
     }else{
-      x <-abs( cor(as.matrix(X[,unlist(l_cs[[k]]$cs   ) ])))
+
+      x <-abs( cor(as.matrix(data$X[,unlist(l_cs[[k]]$cs   ) ])))
 
 
       tt[[k]] <-  min( x[col(x) != row(x)])

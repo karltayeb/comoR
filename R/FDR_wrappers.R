@@ -45,7 +45,6 @@ prep_out_FDR_wrapper <- function(fit,data, outputlevel=1,n_sim, min.purity=0.3 )
 
 
 
-
   est_purity <- cal_purity(fit, data)
 
   if ( length(which( est_purity> min.purity))==0){
@@ -57,6 +56,7 @@ prep_out_FDR_wrapper <- function(fit,data, outputlevel=1,n_sim, min.purity=0.3 )
     )
     )
     cs = fit$logreg$logistic_ibss$cs
+    is_dummy=TRUE
   }else{
 
 
@@ -68,20 +68,22 @@ prep_out_FDR_wrapper <- function(fit,data, outputlevel=1,n_sim, min.purity=0.3 )
                            )
                 )
       cs = fit$logreg$logistic_ibss$cs[ idx ]
-
+      is_dummy=FALSE
   }
 
 
   if(outputlevel==1){
     out <- list(result =resdf,
                 cs=cs,
-                fitted_effect=fitted_effect)
+                fitted_effect=fitted_effect,
+                is_dummy=is_dummy)
   }
   if(outputlevel==2){
     out <- list(result =resdf,
                 cs=cs,
                 fitted_effect=fitted_effect,
-                full_obj = fit)
+                full_obj = fit,
+                is_dummy=is_dummy)
   }
   return(out)
 

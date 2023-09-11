@@ -11,7 +11,7 @@ rm(list=ls())
                             beta0=-2
                             beta1=2
                             max_class=10
-                            noise_level= 5
+                            noise_level=  3
                             max_iter_cEBMF=20
                             max_iter_como=20
 
@@ -137,7 +137,8 @@ rm(list=ls())
 
   rmse_cEBMF   <- sqrt(mean( (Y_true-Y_est)^2))
   rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
-  rmse         <- c(rmse_cEBMF, rmse_flash)
+  rmse_cEBMF2  <-  sqrt(mean( (Y_true- res$Y_fit)^2))
+  rmse         <- c(rmse_cEBMF2 ,rmse_cEBMF, rmse_flash)
 
   test_that("cEBMF outpertfomr flash", {
 

@@ -13,9 +13,13 @@
 #' @export
 cFDR <- function( betahat,
                   se,
-                  pvalue,
-                  zscore,
+                  #  pvalue,
+                  #  zscore,
                   X,
+                  Z,
+                  param_como2 = list(logreg='logistic_ibss',
+                                     logreg_params = list(L=5)
+                                     ),
                   coverage  = 0.95,
                   maxiter   = 100,
                   tol       = 1e-3,
@@ -26,55 +30,65 @@ cFDR <- function( betahat,
                   n_sim= 1000,
                   alpha,
                   nullweight=4,
-                  verbose=TRUE
+                  verbose=TRUE,
+                  max_iter_como =10,
+                  min.purity=.3
 )
 {
-  if( !(missing(betahat))&missing(se)){
+    if( !(missing(betahat))&missing(se)){
     stop("Please provide standard error when providing regression estimate or use zscore input")
-  }
-  if(   missing(betahat)&missing(pvalue)&missing(zscore)){
-    stop("Please provide one of the following entry:betahat, pvalue or zscore")
-  }
+   }
+# if(   missing(betahat)&missing(pvalue)&missing(zscore)){
+      # stop("Please provide one of the following entry:betahat, pvalue or zscore")
+      # }
 
 
-  if( !missing(betahat)& !missing( se)){
-    model <- "normal"
-    data <- set_data_como(betahat  = betahat,
-                              X = X,
-                              se=  se)
+  N <- length(betahat)
+  if(missing(Z)){
+  Z <- matrix(rep(1, N), nrow=N)
+  }
+
+  #if( !missing(betahat)& !missing( se)){
+  #   model <- "normal"
+
+
+    data <- prep_data_como2(betahat=betahat,
+                            se=se, X=X,
+                            Z =Z )
     #fit como model
-  }
-  if(!missing(pvalue)){
-    model <- "beta"
-    data <- set_data_como(p = pvalue,
-                              X = X)
-  }
+    #}
+    # if(!missing(pvalue)){
+    #  model <- "beta"
+    #  data <- set_data_como(p = pvalue,
+    #                          X = X)
+# }
 
-  if(!missing(zscore)){
-    model <- "beta"
-    data <- set_data_como(zscore = zscore, #TODO using U value as in the ZAP paper
-                              X = X)
-    upper =TRUE
-  }
+#if(!missing(zscore)){
+#  model <- "beta"
+    #  data <- set_data_como(zscore = zscore, #TODO using U value as in the ZAP paper
+    #                            X = X)
+#   upper =TRUE
+#}
 
   if(verbose){
     print( "Fitting como model")
   }
-  fit =  fit.como(data,
-                      model      = model,
-                      maxiter   = maxiter,
-                      tol       = tol,
-                      max_class = max_class,
-                      mult      = mult,
-                      upper     = upper,
-                      nullweight = nullweight)
+
+
+
+  fit  <- rlang::exec(  "data_initialize_como2" , !!!param_como2, data= data)
+  fit  <- fit_model( fit,  data, max_iter = max_iter_como, estimate_f1=T )
+
+
 
 if(verbose){
   print( "Model fitting done, performing FDR computation")
 }
   out <- prep_out_FDR_wrapper (fit=fit,
+                               data= data,
                                outputlevel= outputlevel,
-                               n_sim = n_sim)
+                               n_sim = n_sim,
+                               min.purity=  min.purity)
 
 
   return( out)

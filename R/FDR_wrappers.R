@@ -4,56 +4,74 @@
 #'
 #'
  # TODO work on presentation of the output
-prep_out_FDR_wrapper <- function(fit, outputlevel=1,n_sim ){
-  if(fit$model=="normal"){
-    est    <- post_mean_sd.como (fit)
-    lfdr   <- get_lfdr_mixnorm(fit)
+prep_out_FDR_wrapper <- function(fit,data, outputlevel=1,n_sim, min.purity=0.3 ){
+  #  if(fit$model=="normal"){
+    est    <- post_mean_sd  (fit,data)
+    lfdr   <- get_lfdr(fit,data)
     qvalue <- cal_qvalue(lfdr)
-    resdf <- data.frame(betahat       = fit$data$betahat,
-                        se            = fit$data$se,
+    resdf <- data.frame(betahat       =  data$betahat,
+                        se            =  data$se,
                         lfdr          = lfdr,
                         qvalue        = qvalue,
                         PosteriorMean = est[,1],
                         PosteriorSD   = est[,2]
                         )
-  }
-
-  if(fit$model=="beta"){
+    # }
+  #if(fit$model=="beta"){
 
     # case where mixture of beta with increasing and decreasing value
 
-      lfdr   <- get_lfdr_beta(fit)
-      qvalue <- cal_qvalue(lfdr)
-      FDR <- assesor.como_beta(fit,n_sim=n_sim )
-      if("p"%in% names(fit$data)){
-        resdf <- data.frame(p       = fit$data$p,
-                            lfdr    = lfdr,
-                            qvalue  = qvalue,
-                            FDR     = FDR
-        )
-      }
-      if("zscore" %in% names(fit$data) ){
-        resdf <- data.frame(zscore  = fit$data$zscore,
-                            lfdr    = lfdr,
-                            qvalue  = qvalue,
-                            FDR     = FDR
-        )
-      }
+  #    lfdr   <- get_lfdr_beta(fit)
+  #    qvalue <- cal_qvalue(lfdr)
+  #    FDR <- assesor.como_beta(fit,n_sim=n_sim )
+  #    if("p"%in% names(fit$data)){
+  #      resdf <- data.frame(p       = fit$data$p,
+  #                           lfdr    = lfdr,
+  #                           qvalue  = qvalue,
+  #                          FDR     = FDR
+  #      )
+  #    }
+  #    if("zscore" %in% names(fit$data) ){
+  #      resdf <- data.frame(zscore  = fit$data$zscore,
+  #                          lfdr    = lfdr,
+  #                           qvalue  = qvalue,
+  #                          FDR     = FDR
+  #      )
+  #     }
 
 
+
+  # }
+
+
+
+
+  est_purity <- cal_purity(fit, data)
+
+  if ( length(which( est_purity> min.purity))==0){
+    warning(paste("No CS with a purity of at least ", min.purity, "was detecting, reruning all the dummy CS"))
+
+    fitted_effect <-  do.call( cbind, lapply(1:length(fit$logreg$logistic_ibss$cs),
+                                             function(k)
+                                               fit$logreg$logistic_ibss$alpha[ k,] *fit$logreg$logistic_ibss$mu[k,]
+    )
+    )
+    cs = fit$logreg$logistic_ibss$cs
+  }else{
+
+
+
+      idx <- which( est_purity> min.purity)
+      fitted_effect <-  do.call( cbind, lapply(idx ,
+                                               function(k)
+                                                 fit$logreg$logistic_ibss$alpha[ k,] *fit$logreg$logistic_ibss$mu[k,]
+                           )
+                )
+      cs = fit$logreg$logistic_ibss$cs[ idx ]
 
   }
 
 
-  ### TODO: remove dummy CS
-  cs <- lapply( 1:length(fit$logreg_list),
-                function(k)
-                 get_all_cs(fit$logreg_list[[k]])
-                )
-  fitted_effect <-  lapply(1:length(fit$logreg_list),
-                          function(k)
-                            fit$logreg_list[[k]]$params$alpha*fit$logreg_list[[k]]$params$mu
-                         )
   if(outputlevel==1){
     out <- list(result =resdf,
                 cs=cs,

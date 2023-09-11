@@ -63,15 +63,4 @@ william_example <- function(){
 
   #or via mococomo
 
-  model <- "normal"
-  data <- set_data_mococomo(betahat = obs,
-                            X = X,
-                            se= se)
-
-  fit <- fit.mococomo(data, maxiter=20)
-  cs <- lapply( 1:length(fit$logreg_list),
-                function(k)
-                  get_all_cs(fit$logreg_list[[k]])
-  )
-  cs
 }

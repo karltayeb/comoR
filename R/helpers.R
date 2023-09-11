@@ -269,4 +269,3 @@ which_dummy_cs_como <- function( cs, X,min.purity){
 
 }
 
-

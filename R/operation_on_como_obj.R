@@ -62,7 +62,7 @@ cal_ind_moment12 <- function(fit,data, t_post_var, i) {
   temp <- do.call(
     c,
     lapply(
-      1:length(fit$f_list),
+      1:ncol(t_post_var),
       function(k) {
         (t_post_var[i, k] / (data$se[i]^2) )*
           (data$betahat[i])
@@ -127,18 +127,18 @@ post_mean_sd.como <- function(fit,data) {
 
 
 #' @title Compute individual fdr value  como model with centered normal mixture
-#' @descriptionCompute individual fdr value  como model with centered normal mixture
+#' @description Compute individual fdr value  como model with centered normal mixture
 #'
 #' @param fit a como object
 #' @export
-get_fdr <- function(fit) {
-  tt1 <- fit$post_assignment[, 1] * dnorm(fit$data$betahat, mean = 0, sd = fit$data$se)
+get_fdr.como <- function(fit,data) {
+  tt1 <- fit$post_assignment[, 1] * dnorm( data$betahat, mean = 0, sd =  data$se)
   tt2 <- Reduce("+", lapply(
     2:ncol(fit$post_assignment),
     function(k) {
-      fit$post_assignment[, k] * dnorm(fit$data$betahat,
+      fit$post_assignment[, k] * dnorm(data$betahat,
                                        mean = 0,
-                                       sd = sqrt(fit$data$se^2 + fit$f_list[[k]]$var)
+                                       sd = sqrt(data$se^2 + fit$f_list[[k]]$var)
       )
     }
   ))

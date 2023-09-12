@@ -10,7 +10,9 @@ data_initialize_como(
   scales = NULL,
   mu0 = 0,
   var0 = 1,
-  nullweight = 0
+  nullweight = 0,
+  mnreg = "constant",
+  param_nnet = list(size = 1, decay = 1)
 )
 }
 \description{

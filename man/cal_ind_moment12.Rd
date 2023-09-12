@@ -4,7 +4,7 @@
 \alias{cal_ind_moment12}
 \title{Compute individual posterior first and second moment}
 \usage{
-cal_ind_moment12(fit, t_post_var, i)
+cal_ind_moment12(fit, data, t_post_var, i)
 }
 \arguments{
 \item{fit}{a como object}

@@ -4,7 +4,7 @@
 \alias{sim_twococomo}
 \title{Simulate data under the twococomo SuSiE model}
 \usage{
-sim_twococomo(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0)
+sim_twococomo(n = 1000, p = 50, L = 3, N = 1, beta)
 }
 \arguments{
 \item{n}{numeric sample size}

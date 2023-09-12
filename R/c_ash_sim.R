@@ -1,7 +1,7 @@
 #'@export
 c_ash_sim <- function( N=1000,
                        beta0=-2,
-                       beta1=2,
+                       beta1=4,
                        var_cov_effect=3,
                        effect_var=3,
                        noise_level=1,
@@ -346,7 +346,7 @@ c_ash_sim <- function( N=1000,
     power_ash <- 0
     T1_ash <-  0
   }else{
-    power_ash <-  sum( mix[which( tt$result$lfdr<0.05)])/length(which( tt$result$lfdr<0.05))
+    power_ash <-  sum( mix[which( tt$result$lfdr<0.05)])/sum( mix)
     T1_ash <-  length(which( mix[which( tt$result$lfdr<0.05)]==0))/length(which( tt$result$lfdr<0.05))
 
   }
@@ -354,7 +354,7 @@ c_ash_sim <- function( N=1000,
     power_mco <- 0
     T1_mco <-  0
   }else{
-    power_mco <- sum( mix[which(res$result$lfdr <0.05)])/length(which(res$result$lfdr<0.05))
+    power_mco <- sum( mix[which(res$result$lfdr <0.05)])/sum( mix)
     T1_mco <-length(which( mix[which(res$result$lfdr<0.05)]==0))/length(which(res$result$lfdr<0.05))
 
   }

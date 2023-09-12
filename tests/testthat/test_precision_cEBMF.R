@@ -12,7 +12,7 @@ rm(list=ls())
                             beta0=-2
                             beta1=2
                             max_class=10
-                            noise_level=  3
+                            noise_level=  10
                             max_iter_cEBMF=20
                             max_iter_como=20
 
@@ -61,10 +61,11 @@ rm(list=ls())
   res <- cEBMF  (Y=Y_obs,
                  X_l=X_l,
                  X_f=X_f,
+                 reg_method="logistic_susie",
                  K=K, init_type = "udv_si",
                  param_como = list(max_class=max_class,mnreg="mult_reg"),
                  maxit_como =max_iter_como ,
-                 maxit=10,
+                 maxit=3,
                  param_nnet= list(size=3, decay=1.2))
 
 

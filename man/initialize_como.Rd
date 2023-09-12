@@ -12,7 +12,8 @@ initialize_como(
   mu0 = 0,
   var0 = 1,
   nullweight = 0,
-  mnreg = "constant"
+  mnreg = "constant",
+  param_nnet = list(size = 1, decay = 1)
 )
 }
 \arguments{

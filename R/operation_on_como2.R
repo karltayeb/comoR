@@ -18,10 +18,10 @@ post_mean_sd.como2 <- function(fit,data) {
                                  i=i)
     )
   )
-
+  t_post_var[,1] <- 0
   tt <- compute_post_assignment (fit, data)
 
-  fit$post_assignment <- cbind(  tt,1- tt)
+  fit$post_assignment <- cbind( 1-tt,tt)
   out <- do.call(
     rbind,
     lapply(
@@ -63,20 +63,12 @@ t_ind_var.como2 <- function(fit, data, i) {
 #' @export
 get_lfdr.como2 <- function(fit,data) {
 
-  tt <- compute_post_assignment (fit, data)
-
-  fit$post_assignment <- cbind(  1-tt, tt)
-
-  tt1 <- fit$post_assignment[, 1] * dnorm(data$betahat, mean = 0, sd = data$se)
-  tt2 <- fit$post_assignment[, 2] * dnorm( data$betahat,
-                                       mean = 0,
-                                       sd = sqrt( data$se^2 +fit$f1$var)
-      )
 
 
-  out <- tt1 / (tt1 + tt2)
 
-  return(out)
+
+
+  return( 1-compute_post_assignment (fit, data))
 }
 
 

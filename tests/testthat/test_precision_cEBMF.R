@@ -1,5 +1,6 @@
 library(comoR)
 library(softImpute)
+library(nnet)
 rm(list=ls())
  devtools::load_all(".")
 

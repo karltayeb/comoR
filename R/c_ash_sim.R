@@ -1,7 +1,7 @@
 #'@export
 c_ash_sim <- function( N=1000,
                        beta0=-2,
-                       beta1=1,
+                       beta1=2,
                        var_cov_effect=3,
                        effect_var=3,
                        noise_level=1,
@@ -342,13 +342,25 @@ c_ash_sim <- function( N=1000,
 
 
   #Power
-  power_ash <-  sum( mix[which( tt$result$lfdr<0.05)])/length(which( tt$result$lfdr<0.05))
-  power_mco <- sum( mix[which(res $post_assignment[,1]<0.05)])/length(which(res $post_assignment[,1]<0.05))
-  #T1 error
-  T1_ash <-  length(which( mix[which( tt$result$lfdr<0.05)]==0))/length(which( tt$result$lfdr<0.05))
-  T1_mco <-length(which( mix[which(res $post_assignment[,1]<0.05)]==0))/length(which(res $post_assignment[,1]<0.05))
+  if (length(which( tt$result$lfdr<0.05))==0){
+    power_ash <- 0
+    T1_ash <-  0
+  }else{
+    power_ash <-  sum( mix[which( tt$result$lfdr<0.05)])/length(which( tt$result$lfdr<0.05))
+    T1_ash <-  length(which( mix[which( tt$result$lfdr<0.05)]==0))/length(which( tt$result$lfdr<0.05))
 
-  rmse_mco <-  sqrt(mean( (res$result$mean -  betatrue)^2))
+  }
+  if (length(which(res$result$lfdr<0.05))==0){
+    power_mco <- 0
+    T1_mco <-  0
+  }else{
+    power_mco <- sum( mix[which(res$result$lfdr <0.05)])/length(which(res$result$lfdr<0.05))
+    T1_mco <-length(which( mix[which(res$result$lfdr<0.05)]==0))/length(which(res$result$lfdr<0.05))
+
+  }
+  #T1 error
+
+  rmse_mco <-  sqrt(mean( (res$result$PosteriorMean -  betatrue)^2))
 
   rmse_ash <- sqrt(mean( (( tt$result$PosteriorMean -  betatrue)^2)))
 

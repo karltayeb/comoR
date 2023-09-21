@@ -12,6 +12,7 @@
 #'  @param type_noise specify which kind of noise structure is expected, currently three choices. Whether noise constant accross column ('column_wise'), constant 'constant' or constant across rown 'row_wise'
 #'  @param init_type specify initialisation method for loading and factor, methods includes: "udv", "udv_si_svd", "si" (softimpute), "ones" and "rand_udv"
 #' @return a cEBMF object
+#' @export
 init_cEBMF <- function(Y, X_l,X_f,
                        reg_method="nnet",
                        K=1,
@@ -226,7 +227,7 @@ init_cEBMF <- function(Y, X_l,X_f,
 
 
 #'@param cEBMF a cEBMF object
-
+#' @export
 cEBMF_iter <- function(cEBMF.obj){
 
   for( k in 1:cEBMF.obj$K){
@@ -246,6 +247,7 @@ cEBMF_iter <- function(cEBMF.obj){
 #'@param cEBMF a cEBMF object
 #'@param k component of interest
 #'@return list of two l_i_hat the estimate loading, s_i the estimated standard errors
+#' @export
 cal_expected_loading <- function( cEBMF.obj, Rk,k){
 
   if( cEBMF.obj$K==1){
@@ -275,6 +277,7 @@ cal_expected_loading <- function( cEBMF.obj, Rk,k){
 #'@param cEBMF a cEBMF object
 #'@param k  component of interest
 #'@return list of two l_i_hat the estimate loading, s_i the estimated standard errors
+#' @export
 cal_expected_factor <- function( cEBMF.obj, Rk,k){
 
 
@@ -299,7 +302,7 @@ cal_expected_factor <- function( cEBMF.obj, Rk,k){
                s_j     = s_j)
   return( out)
 }
-
+#' @export
 cal_fitted_value.cEBMF <- function(cEBMF.obj)
 {
 
@@ -318,7 +321,7 @@ cal_fitted_value.cEBMF <- function(cEBMF.obj)
   return(cEBMF.obj)
 }
 
-
+#' @export
 cal_expected_residuals.cEBMF <- function(cEBMF.obj)
 {
   if(cEBMF.obj$K==1){
@@ -377,7 +380,7 @@ cal_partial_residuals.cEBMF <- function(cEBMF.obj,k)
 #'@title Estimate noise value
 #'@'description Estimate noise value for different type of structure
 #'@param cEBMF an CEBMF object
-
+#' @export
 
 update_tau.cEBMF <- function(cEBMF.obj )
 {
@@ -413,6 +416,7 @@ update_tau.cEBMF <- function(cEBMF.obj )
 }
 
 #'@param cEBMF a cEBMF object
+#' @export
 update_elbo.cEBMF <- function( cEBMF.obj){
   cEBMF.obj$elbo <- c(cEBMF.obj$elbo,
                       get_objective.cEBMF (cEBMF.obj)
@@ -507,7 +511,7 @@ set_data_fit.cEBMF <- function(cEBMF.obj,l_k=NULL, f_k=NULL ){
 
 #'@param cEBMF a cEBMF object
 #'@param k the factor to be updated
-#'
+#' @export
 #'
 update_cEBMF <-  function(cEBMF.obj, k)
 {
@@ -553,7 +557,7 @@ update_cEBMF <-  function(cEBMF.obj, k)
   return(cEBMF.obj)
 }
 
-
+#' @export
 update_fitted_val <- function( cEBMF.obj)
 {
   cEBMF.obj <- cal_fitted_value.cEBMF(cEBMF.obj)
@@ -564,7 +568,7 @@ update_fitted_val <- function( cEBMF.obj)
 #' @description prepare output of cEMBF function
 #' @param cEBMF.obj a cEBMF object
 #' @return a cEBMF object
-
+#' @export
 out_prep.cEBMF <- function(cEBMF.obj)
 {
   cEBMF.obj <- update_fitted_val(cEBMF.obj)
@@ -574,7 +578,7 @@ out_prep.cEBMF <- function(cEBMF.obj)
 
 
 
-
+#' @export
 get_objective.cEBMF = function(cEBMF.obj) {
    out <-  e_loglik  (cEBMF.obj) - sum(unlist(cEBMF.obj$KL_l)) - sum(unlist(cEBMF.obj$KL_f))
 
@@ -585,7 +589,7 @@ get_objective.cEBMF = function(cEBMF.obj) {
 # @title Get expected log likelihood under current fit.
 #
 # @inheritParams flash_get_objective
-#
+#' @export
 e_loglik = function(cEBMF.obj) {
   R2    <- cal_expected_residuals.cEBMF(cEBMF.obj)
   tau   <- cEBMF.obj$tau
@@ -595,6 +599,7 @@ e_loglik = function(cEBMF.obj) {
 
 
 # adapted from flashr
+#' @export
 e_loglik_R2_tau= function(R2, tau, data) {
   # tau can be either a scalar or a matrix:
 

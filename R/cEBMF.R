@@ -12,7 +12,7 @@
 #' @param tol paramter for assessing convergence
 #' @return a cEBMF object
 #'
-#'
+#' @export
 #'
 
 cEBMF <- function( Y,
@@ -51,7 +51,7 @@ cEBMF <- function( Y,
       break
     }
   }
-  plot( cEBMF.obj$elbo)
+ # plot( cEBMF.obj$elbo)
   cEBMF.obj <- out_prep.cEBMF(cEBMF.obj)
   return(cEBMF.obj)
 }

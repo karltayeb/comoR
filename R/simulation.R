@@ -393,31 +393,57 @@ sim_mixture_beta <- function(n = 1000, par = list(alpha = c(1, 1), beta = c(1, 1
 
 
 #### Simulation cEBMF----
+#'@export
 sim_func_cEBMF <- function( N=200, # number of row
                             L=100, #number of columns
                             K=2, #number of factor
-                            P1=20, # number of cov for row /loadings
-                            P2=20, # number of cov for col /factors
+                            P1=200, # number of cov for row /loadings
+                            P2=200, # number of cov for col /factors
                             beta0=-2,
                             beta1=2,
                             noise_level= 3,
                             max_iter_cEBMF=20,
                             max_iter_como=20,
+                            max_class=10,
                             seed
 ){
+
+  library(softImpute)
+  library(susieR)
+  library(mvtnorm)
+  data(N3finemapping)
+  attach(N3finemapping)
+  library(comoR)
 
   if( missing( seed)){
     set.seed(rpois(lambda = 100,n=1))
   }else{
     set.seed(seed)
   }
-  X_l <-   matrix(rnorm(P1*N, sd=3), ncol=P1)
-  X_f <-   matrix(rnorm(P2*L, sd=3), ncol=P2)
+  L_l <-  sample (1:20,size=1)
+  L_f <-  sample (1:20,size=1)
+
+
+
+
+
+  X_l <-   rmvnorm(N,sigma=cov(N3finemapping$X[1:100,1:P1]))
+  X_f <-    rmvnorm(L,sigma=cov(N3finemapping$X[1:100,1:P2]))
+
+
+  true_pos_l <- sample( 1:P1, size=L_l, replace=FALSE)
+  true_pos_f <- sample( 1:P2, size=L_f, replace=FALSE)
+
+
+
 
   true_l  <- list()
   true_f  <- list()
 
   for( k in 1:K){
+
+
+
     samp_prob <- 1/(1 +exp(-(beta0+beta1*X_l[,k])))
     lk <- c()
     mix <- c()
@@ -449,58 +475,18 @@ sim_func_cEBMF <- function( N=200, # number of row
   Y_obs <- Y_true+ matrix( rnorm(N*L, sd= noise_level), ncol=L)
 
 
-  cEBMF.obj <- init_cEBMF (Y=Y_obs,
-                           X_l=X_l,
-                           X_f=X_f,
-                           K=K, init_type = "udv_si",
-                           param_como = list(max_class=K,mnreg="mult_reg"),
-                           maxit_como = max_iter_como )
+  res <- cEBMF  (Y=Y_obs,
+                 X_l=X_l,
+                 X_f=X_f,
+                 reg_method="logistic_susie",
+                 K=K, init_type = "udv_si",
+                 param_como = list(max_class=max_class,mnreg="mult_reg"),
+                 maxit_como =max_iter_como ,
+                 param_nnet= list(size=3, decay=1.2),
+                 maxit=max_iter_cEBMF)
 
 
 
-  for ( o in 1:max_iter_cEBMF){
-    for ( k in 1:K){
-      Rk <- cal_partial_residuals.cEBMF(cEBMF.obj,k)
-      l_k <- cal_expected_loading( cEBMF.obj, Rk,k)
-      t_data <- set_data_como(betahat = l_k$l_i_hat,
-                              se      = l_k$s_i,
-                              X       = cEBMF.obj$X_l )
-
-      t_fit <- data_initialize_como(t_data, max_class=10,mnreg="mult_reg") # initialize the model from the data
-      t_fit <- fit_model( t_fit, t_data, max_iter = 10)
-
-
-      fitted_loading <- post_mean_sd.como (fit= t_fit, data=t_data )
-      cEBMF.obj$loading[,k] <-  fitted_loading$mean
-      cEBMF.obj$loading2[,k] <- fitted_loading$sd^2+ fitted_loading$mean^2
-
-
-      #factor update
-      f_k <- cal_expected_factor( cEBMF.obj, Rk,k)
-      t_data <- set_data_como(betahat = f_k$f_j_hat,
-                              se      = f_k$s_j,
-                              X       = cEBMF.obj$X_f )
-      t_fit <- data_initialize_como(t_data, max_class=10,mnreg="mult_reg") # initialize the model from the data
-      t_fit <- fit_model( t_fit, t_data, max_iter = 10)
-
-
-      fitted_factor <- post_mean_sd.como (fit= t_fit, data=t_data )
-      cEBMF.obj$factor[,k] <-  fitted_factor $mean
-      cEBMF.obj$factor2[,k] <-  fitted_factor$sd^2+ fitted_factor$mean^2
-
-      cEBMF.obj<- update_tau.cEBMF (cEBMF.obj )
-
-      Y_est <- cEBMF.obj$loading[,1]%*%t(cEBMF.obj$factor[,1])
-
-
-    }
-
-  }
-
-  Y_est <- Reduce("+", lapply(1:ncol(cEBMF.obj$factor), function(k)
-    cEBMF.obj$loading[,k]%*%t(cEBMF.obj$factor[,k])
-  )
-  )
   f <- flashier::flash(Y_obs)
 
 

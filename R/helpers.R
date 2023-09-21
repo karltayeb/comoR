@@ -36,6 +36,7 @@ softmax <- function(x) {
 }
 
 #' check if ELBO is converged to some tolerance threshold
+#' @export
 .converged <- function(fit, tol = 1e-3) {
   is.converged <- F
   if ((length(fit$elbo) > 1) & abs(.diff(fit)) <= tol) {

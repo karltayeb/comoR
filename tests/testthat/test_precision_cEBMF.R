@@ -9,7 +9,7 @@ rm(list=ls())
                             K=2  #number of factor
                             P1=20  # number of cov for row /loadings
                             P2=20  # number of cov for col /factors
-                            beta0=-2
+                            beta0=-1
                             beta1=2
                             max_class=10
                             noise_level=  10
@@ -20,8 +20,8 @@ rm(list=ls())
 
     set.seed(rpois(lambda = 100,n=1))
 
-  X_l <-   matrix(rnorm(P1*N, sd=3), ncol=P1)
-  X_f <-   matrix(rnorm(P2*L, sd=3), ncol=P2)
+  X_l <-   matrix(rnorm(P1*N, sd=1), ncol=P1)
+  X_f <-   matrix(rnorm(P2*L, sd=1), ncol=P2)
 
   true_l  <- list()
   true_f  <- list()

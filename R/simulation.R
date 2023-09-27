@@ -488,6 +488,7 @@ sim_func_cEBMF <- function( N=200, # number of row
 
 
   f <- flashier::flash(Y_obs)
+  Y_est <- Reduce("+", lapply( 1:cEBMF.obj$K, function(k) cEBMF.obj$loading %*%t(cEBMF.obj$factor ) ))
 
 
   rmse_cEBMF   <- sqrt(mean( (Y_true-Y_est)^2))

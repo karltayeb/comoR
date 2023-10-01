@@ -24,11 +24,15 @@ cEBMF <- function( Y,
                    init_type="udv_si",
                    maxit=100,
                    tol=1e-3 ,
-                   param_como  = list(max_class=10,mnreg="mult_reg"),
+                   param_como  = list(max_class=10,mnreg_type="mult_reg"),
                    param_nnet  =list( size=1, decay=1),
                    param_como2 = list(),
                    param_susie =  list(L=5),
                    maxit_como  = 10){
+
+  if(reg_method %!in% c("nnet","logistic_susie")){
+    stop("reg_method should be equal to nnet or logistic_susie ")
+  }
 
   cEBMF.obj <- init_cEBMF (Y,
                            X_l,

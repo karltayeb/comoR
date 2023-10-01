@@ -1,20 +1,22 @@
 #rm(list = ls())
+devtools::load_all(".")
 library(logisticsusie)  #Simulate data under the como model
 library(comoR)
+
+library(softImpute)
 sim11  <- sim_twococomo(n=1000)#contains all the info
 
 
 #preparing the data
 
 
-fit <- data_initialize_como (data11)
-
 
 data11 <-set_data_como(betahat = sim11$betahat,
                        se = sim11$se ,
                        X  = sim11$X) # prepare the data
-fit <- data_initialize_como(data11, max_class=5, scales = c(0, 1, 5, 10)) # initialize the model from the data
-fit <- fit_model(fit, data, max_iter = 10)
+
+ fit <- data_initialize_como(data=data11, max_class=5, scales = c(0, 1, 5, 10)) # initialize the model from the data
+fit <- fit_model(fit, data11, max_iter = 10)
 
 
 
@@ -48,8 +50,12 @@ image(Y_true)
 
 K=2
 dim(Y)
-library(softImpute)
-cEBMF.obj <- init_cEBMF (Y, X_l,X_f,K=2, init_type = "udv_si")
+cEBMF.obj <- init_cEBMF (Y, X_l,X_f,K=2, init_type = "udv_si",
+                         param_como  = list(max_class=10,mnreg_type="mult_reg"),
+                         param_nnet  =list( size=1, decay=1),
+                         param_como2 = list(),
+                         param_susie =  list(L=5),
+                         maxit_como  = 10)
 plot(cEBMF.obj$loading[,1] ,data11$betahat)
 
 
@@ -148,10 +154,9 @@ for (i in 1:10) {
 }
 
 
-
+library(flashier)
 Y_est <- Reduce("+", lapply( 1:cEBMF.obj$K, function(k) cEBMF.obj$loading[,k]%*%t(cEBMF.obj$factor[,k]) ))
-f = flash(Y, K=3 ,#ebnm_fn= 'ebnm_ash' ,
-          var_type = "constant")
+f = f <- flashier::flash(Y_obs)
 plot( cEBMF.obj$elbo)
 plot( Y_est,Y)
 points( Y_est,Y_true, col="green")
@@ -160,7 +165,7 @@ plot( fitted(f),Y_true)
 points( Y_est,Y_true, col="green")
 plot( Y_est,fitted(f))
 
-
+library(nnet)
 cEBMF.fit <- cEBMF (Y, X_l,X_f,K=1, init_type = "udv_si")
 cEBMF.fit$elbo
 
@@ -179,12 +184,11 @@ Y_est <- Reduce("+", lapply( 1:cEBMF.obj$K, function(k) cEBMF.obj$loading %*%t(c
 Y_fit <- Reduce("+", lapply( 1:cEBMF.fit $K, function(k) cEBMF.fit $loading %*%t(cEBMF.fit $factor ) ))
 plot( Y_est, cEBMF.fit$Y_fit)
 abline(a=0,b=1)
-f = flash(Y, K=1 ,#ebnm_fn= 'ebnm_ash' ,
-          var_type = "constant")
+ f <- flashier::flash(Y )
 plot( cEBMF.obj$elbo)
 plot( Y_est,Y)
 points( Y_est,Y_true, col="green")
 
 plot( fitted(f),Y_true)
-points( Y_est,Y_true, col="green")
+points(Y_true, Y_est, col="green")
 plot( Y_est,fitted(f))

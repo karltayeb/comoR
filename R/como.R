@@ -50,16 +50,16 @@ initialize_como <- function(scales,
                             mu0=0,
                             var0=1,
                             nullweight=0,
-                            mnreg='constant',
+                            mnreg_type='constant',
                             param_nnet =list( size=1, decay=1)
                             ){
   # initialize multinomial susie-- but could be any multinomial regression
   K <- length(scales)
 
-  if(mnreg == 'constant'){
+  if(mnreg_type == 'constant'){
     mnreg <- initialize_constant_mnreg(K)
   }
-  if( mnreg== "mult_reg"){
+  if( mnreg_type== "mult_reg"){
 
     mnreg <- initialize_mnreg (mnreg_type = mnreg_type,
                                K          = K,
@@ -91,7 +91,7 @@ data_initialize_como <- function(data, max_class,
                                  mu0=0,
                                  var0=1,
                                  nullweight=0,
-                                 mnreg='constant',
+                                 mnreg_type='constant',
                                  param_nnet =list( size=1, decay=1)) {
   como_check_data(data)
 
@@ -111,7 +111,7 @@ data_initialize_como <- function(data, max_class,
                          mu0=mu0,
                          var0=var0,
                          nullweight,
-                         mnreg=mnreg,
+                         mnreg_type=mnreg_type,
                          param_nnet=param_nnet)
   return(fit)
 }

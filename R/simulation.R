@@ -394,11 +394,11 @@ sim_mixture_beta <- function(n = 1000, par = list(alpha = c(1, 1), beta = c(1, 1
 
 #### Simulation cEBMF----
 #'@export
-sim_func_cEBMF <- function( N=200, # number of row
+sim_func_cEBMF <- function( N=2000, # number of row
                             L=100, #number of columns
                             K=2, #number of factor
-                            P1=200, # number of cov for row /loadings
-                            P2=200, # number of cov for col /factors
+                            P1=20 , # number of cov for row /loadings
+                            P2=20, # number of cov for col /factors
                             beta0=-2,
                             beta1=2,
                             noise_level= 3,
@@ -475,7 +475,7 @@ sim_func_cEBMF <- function( N=200, # number of row
   Y_obs <- Y_true+ matrix( rnorm(N*L, sd= noise_level), ncol=L)
 
 
-  res <- cEBMF  (Y=Y_obs,
+  res_susie <- cEBMF  (Y=Y_obs,
                  X_l=X_l,
                  X_f=X_f,
                  reg_method="logistic_susie",
@@ -485,16 +485,26 @@ sim_func_cEBMF <- function( N=200, # number of row
                  param_nnet= list(size=3, decay=1.2),
                  maxit=max_iter_cEBMF)
 
-
+  res_nnet <- cEBMF  (Y=Y_obs,
+                 X_l=X_l,
+                 X_f=X_f,
+                 reg_method="nnet",
+                 K=K, init_type = "udv_si",
+                 param_como = list(max_class=max_class,mnreg="mult_reg"),
+                 maxit_como =max_iter_como ,
+                 param_nnet= list(size=3, decay=1.2),
+                 maxit=max_iter_cEBMF)
 
   f <- flashier::flash(Y_obs)
-  Y_est <- Reduce("+", lapply( 1:res$K, function(k) res$loading %*%t(res$factor ) ))
+  Y_est_susie <- Reduce("+", lapply( 1:res_susie$K, function(k) res_susie $loading[,k] %*%t(res_susie $factor[,k] ) ))
+  Y_est_nnet <- Reduce("+", lapply( 1:res_susie$K, function(k) res_nnet $loading[,k] %*%t(res_nnet $factor[,k] ) ))
 
 
-  rmse_cEBMF   <- sqrt(mean( (Y_true-Y_est)^2))
+  rmse_cEBMF_susie   <- sqrt(mean( (Y_true-Y_est_susie)^2))
+  rmse_cEBMF_nnet   <- sqrt(mean( (Y_true-Y_est_susie)^2))
   rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
-  rmse         <- c(rmse_cEBMF, rmse_flash)
-  names(rmse ) <- c("rmse_cEBMF", "rmse_flash")
+  rmse         <- c(rmse_cEBMF_susie,rmse_cEBMF_nnet , rmse_flash)
+  names(rmse ) <- c("rmse_cEBMF_susie","rmse_cEBMF_nnet", "rmse_flash")
 
 
   par <-  c( N,
@@ -508,12 +518,20 @@ sim_func_cEBMF <- function( N=200, # number of row
              max_iter_cEBMF ,
              max_iter_como
   )
-
+ names( par)  <-  c( "N",
+                     "L"  ,
+                     "K" ,
+                     "P1"  ,
+                     "P2" ,
+                     "beta0"  ,
+                     "beta1" ,
+                     "noise_level"  ,
+                     "max_iter_cEBMF" ,
+                     "max_iter_como"
+ )
 
   out <- list(rmse      = rmse,
-              par       = par,
-              flash.obj = f,
-              cEBMF.obj = res
+              par       = par
   )
   return( out)
 }

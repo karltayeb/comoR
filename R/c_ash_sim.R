@@ -46,16 +46,16 @@ c_ash_sim <- function( N=1000,
     samp_fun <- function(){
       id <- sample(size=1, 1:4)
       if(id==1){
-        out <-  rnorm( 1, sd=0.25)
+        out <-  rnorm( 1, sd=sqrt(2)*0.25)
       }
       if(id==2){
-        out <-  rnorm( 1, sd=0.5)
+        out <-  rnorm( 1, sd=sqrt(2)*0.5)
       }
       if(id==3){
-        out <-  rnorm( 1, sd=1)
+        out <-  rnorm( 1, sd=sqrt(2)*1)
       }
       if(id==4){
-        out <-  rnorm( 1, sd=2)
+        out <-  rnorm( 1, sd=sqrt(2)*2)
       }
       return( out)
     }
@@ -91,10 +91,10 @@ c_ash_sim <- function( N=1000,
     samp_fun <- function(){
       id <- sample(size=1, 1:2, prob=c(2/3,1/3))
       if(id==1){
-        out <-  rnorm( 1, sd=1)
+        out <-  rnorm( 1, sd=sqrt(2)*1)
       }
       if(id==2){
-        out <-  rnorm( 1, sd=2)
+        out <-  rnorm( 1, sd=sqrt(2)*2)
       }
 
       return( out)
@@ -131,7 +131,7 @@ c_ash_sim <- function( N=1000,
   if( dist=="normal"){
     for ( i in 1:N){
       mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
-      betatrue <- c( betatrue, mix[i] *rnorm(1,sd=1))
+      betatrue <- c( betatrue, mix[i] *rnorm(1,sd=sqrt(2)*1))
       betahat <- c( betahat ,   betatrue[i]+rnorm(1,sd=noise_level ) )
     }
     if(se_type=="constant"){
@@ -219,16 +219,16 @@ c_ash_sim <- function( N=1000,
     samp_fun <- function(){
       id <- sample(size=1, 1:4, prob = c(1/4,1/4,1/3,1/6) )
       if(id==1){
-        out <-  rnorm( 1,mean=-2, sd=2)
+        out <-  rnorm( 1,mean=-2, sd=sqrt(2)*2)
       }
       if(id==2){
-        out <-  rnorm( 1,mean=-1, sd=1.5)
+        out <-  rnorm( 1,mean=-1, sd=sqrt(2)*1.5)
       }
       if(id==3){
-        out <-  rnorm( 1,  mean=0, sd=1)
+        out <-  rnorm( 1,  mean=0, sd=sqrt(2)*1)
       }
       if(id==4){
-        out <-  rnorm( 1,mean=1,   sd=1)
+        out <-  rnorm( 1,mean=1,   sd=sqrt(2)*1)
       }
 
       return( out)

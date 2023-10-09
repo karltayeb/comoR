@@ -45,7 +45,12 @@ prep_out_FDR_wrapper <- function(fit,data, outputlevel=1,n_sim, min.purity=0.3 )
 
 
 
-  est_purity <- cal_purity(fit, data)
+  est_purity <- do.call(c,cal_purity_cFDR(l_cs = fit$logreg$logistic_ibss$cs,
+                           as.matrix(data$X))
+                        )
+
+
+  est_max_bf <- do.call(c, lapply( 1: length(fit$logreg$logistic_ibss$fits), function(l)  max (fit$logreg$logistic_ibss$fits[[l]]$lbf)))
 
   if ( length(which( est_purity> min.purity))==0){
     warning(paste("No CS with a purity of at least ", min.purity, "was detecting, reruning all the dummy CS"))
@@ -76,6 +81,8 @@ prep_out_FDR_wrapper <- function(fit,data, outputlevel=1,n_sim, min.purity=0.3 )
     out <- list(result =resdf,
                 cs=cs,
                 fitted_effect=fitted_effect,
+                est_purity = est_purity ,
+                est_max_bf=est_max_bf,
                 is_dummy=is_dummy)
   }
   if(outputlevel==2){
@@ -83,6 +90,8 @@ prep_out_FDR_wrapper <- function(fit,data, outputlevel=1,n_sim, min.purity=0.3 )
                 cs=cs,
                 fitted_effect=fitted_effect,
                 full_obj = fit,
+                est_purity = est_purity ,
+                est_max_bf=est_max_bf,
                 is_dummy=is_dummy)
   }
   return(out)

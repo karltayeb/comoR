@@ -14,7 +14,7 @@ c_ash_sim <- function( N=1000,
                        extended=FALSE
 
 ){
-  L <- sample(1:20, size=1)
+  L <- sample(1:5, size=1)
   library(susieR)
   library(mvtnorm)
   data(N3finemapping)
@@ -364,23 +364,24 @@ c_ash_sim <- function( N=1000,
 
   rmse_ash <- sqrt(mean( (( tt$result$PosteriorMean -  betatrue)^2)))
 
-  is_dummy = res$is_dummy
-  n_cs =  length(res$cs)  #number of CS
-  n_effect <-   length(which(true_pos%in% do.call(c,
+
+  n_effect <-   do.call(c, #number of effect per CS
 
                                     lapply(1:length(res$cs), function(k)
-                                      res$cs[[k]]$cs
+                                      length(which(true_pos%in% res$cs[[k]]$cs))
                                       )
                                     )
-               )
-         )
+
+
+
+
  #number of effect found
-  nfalse_effect <-  Reduce("+",sapply(1:length(res$cs), function(k)
+  nfalse_effect <- do.call(c, lapply(1:length(res$cs), function(k)
     ifelse( length(which(true_pos%in%res$cs[[k]]$cs ))==0, 1,0)
    )
   )
 
-  out <- c( rmse_mco,
+  summary_out <- c( rmse_mco,
             rmse_ash,
             power_mco,
             power_ash,
@@ -396,13 +397,19 @@ c_ash_sim <- function( N=1000,
             ifelse(se_type=="random",1,0) ,
             df_se,
             max_iter,
-            dist,
-            is_dummy,
-            n_cs,
-            n_effect,
-            nfalse_effect
+            dist
+
   )
-  names (out) <-  c("rmse_mco",
+
+
+  df_bf <- data.frame (nfalse_effect= nfalse_effect,
+                       n_effect     = n_effect ,
+                       purity       = res$est_purity,
+                       maxLBF       = res$est_max_bf
+
+                       )
+
+  names ( summary_out ) <-  c("rmse_mco",
                     "rmse_ash",
                     "power_mco",
                     "power_ash",
@@ -418,13 +425,12 @@ c_ash_sim <- function( N=1000,
                     "se_type"  ,
                     "df_se",
                     "max_iter",
-                    "dist",
-                    "is_dummy",
-                    "n_cs",
-                    "n_effect",
-                    "nfalse_effect"
+                    "dist"
   )
 
+
+  out <- list( summary= summary_out,
+               df_bf =  df_bf)
 
   if( extended ){
 
@@ -433,7 +439,8 @@ c_ash_sim <- function( N=1000,
                           lfdr_cash =res$result$lfdr,
                           true_lfdr = true_lfdr)
 
-    out <- list( summary=out,
+    out <- list( summary= summary_out,
+                 df_bf =  df_bf,
                  lfdr_est =lfdr_est
     )
   }

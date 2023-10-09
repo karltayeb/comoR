@@ -270,3 +270,22 @@ which_dummy_cs_como <- function( cs, X,min.purity){
 
 }
 
+
+# copied form; susiF.alpha
+#l_cs a list of CS
+#X the matrix of genotype
+
+cal_purity_cFDR<- function(l_cs,X){
+  tt <- list()
+  for (k in 1:length(l_cs)){
+    if(length(unlist(l_cs[[k]]$cs))==1 ){
+      tt[[k]] <- 1
+    }else{
+      x <-abs( cor(X[,unlist(l_cs[[k]]$cs   ) ]))
+
+
+      tt[[k]] <-  min( x[col(x) != row(x)])
+    }
+  }
+  return( tt )
+}

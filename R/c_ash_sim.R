@@ -397,7 +397,8 @@ c_ash_sim <- function( N=1000,
             ifelse(se_type=="random",1,0) ,
             df_se,
             max_iter,
-            dist
+            dist,
+            L
 
   )
 
@@ -425,7 +426,8 @@ c_ash_sim <- function( N=1000,
                     "se_type"  ,
                     "df_se",
                     "max_iter",
-                    "dist"
+                    "dist",
+                    "L"
   )
 
 

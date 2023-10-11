@@ -404,18 +404,11 @@ c_ash_sim <- function( N=1000,
 
 
 
-  print( length(nfalse_effect))
-  print( length(n_effect))
-  print( length(res$est_purity))
-
-  print( length(res$est_max_bf))
-
-
 
   df_bf <- data.frame (nfalse_effect= nfalse_effect,
                        n_effect     = n_effect ,
-                       purity       = res$est_purity,
-                       maxLBF       = res$est_max_bf
+                       purity       = res$est_purity[1:length( nfalse_effect)],
+                       maxLBF       = res$est_max_bf[1:length( nfalse_effect)]
 
                        )
 

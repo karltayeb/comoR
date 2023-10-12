@@ -71,7 +71,7 @@ update_model.como2 <- function(fit, data, estimate_f1=FALSE, track_elbo=T){
 }
 
 #' @export
-data_initialize_como2 <- function(data, mu0=0, var0=1, f1_dist='normal', f1_params = list(), logreg='constant', logreg_params = list()){
+data_initialize_como2 <- function(data, f1_dist='normal', f1_params = list(), logreg='constant', logreg_params = list()){
 
   # initialize component distribution
   f0 <- point_component(mu = 0)
@@ -80,6 +80,9 @@ data_initialize_como2 <- function(data, mu0=0, var0=1, f1_dist='normal', f1_para
     paste0(f1_dist, "_component"), # constructor name
     !!!f1_params # unpack list of params
   )
+
+  # fit f1 with full data to initialize
+  f1 <- update_params(f1, data$betahat, data$se, rep(1, length(data$betahat)))
 
   # initialize posterior assignment
   f0_loglik <- convolved_logpdf(f0, data$betahat, data$se)

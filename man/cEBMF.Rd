@@ -14,7 +14,7 @@ cEBMF(
   init_type = "udv_si",
   maxit = 100,
   tol = 0.001,
-  param_como = list(max_class = 10, mnreg = "mult_reg"),
+  param_como = list(max_class = 10, mnreg_type = "mult_reg"),
   param_nnet = list(size = 1, decay = 1),
   param_como2 = list(),
   param_susie = list(L = 5),

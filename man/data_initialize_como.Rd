@@ -11,7 +11,7 @@ data_initialize_como(
   mu0 = 0,
   var0 = 1,
   nullweight = 0,
-  mnreg = "constant",
+  mnreg_type = "constant",
   param_nnet = list(size = 1, decay = 1)
 )
 }

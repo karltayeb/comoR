@@ -106,7 +106,6 @@ get_all_cs <- function(fit, requested_coverage = 0.95) {
   return(sets)
 }
 
-
 #' @title Preparing data for mococomo fit
 #' @details Preparing data for mococomo fit for two type of input p-values or estimated regression coefficients
 #' currently only support one type of entry, whether betahat or p-values

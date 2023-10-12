@@ -10,6 +10,21 @@ como2_linear_susie <- function(){
   fit <- fit_model(fit, data)
 }
 
+
+como2_linear_susie <- function(){
+  sim <- logisticsusie::sim_ser()
+  betahat <- rnorm(length(sim$y))
+  betahat[sim$y==1] <- rnorm(sum(sim$y == 1), sd=2)
+  se <- rep(1, length(sim$y))
+
+  data <- prep_data_como2(betahat, se, sim$X, sim$Z)
+  fit_init <- data_initialize_como2(data, f1_dist = 'ash', logreg='linear_susie')
+  fit_fixedf1 <- fit_model(fit_init, data)
+
+  # remember, the elbo computation for logreg is not meaningfull so.... fit$elbo not monotone
+  fit <- fit_model(fit_init, data, estimate_f1=T)
+}
+
 como2_linear_susie <- function(){
   sim <- logisticsusie::sim_ser()
   gibss <- with(sim, logisticsusie::generalized_ibss(X, y, L=5))

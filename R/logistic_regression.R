@@ -181,6 +181,7 @@ compute_elbo.logistic_ibss <- function(logreg, qz, data){
   return(elbo)
 }
 
+
 reg_log = function(X,y,threshold = 1e-10, max_iter = 100, intercept=TRUE)
 
 {

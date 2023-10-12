@@ -18,11 +18,18 @@ como2_linear_susie <- function(){
   se <- rep(1, length(sim$y))
 
   data <- prep_data_como2(betahat, se, sim$X, sim$Z)
-  fit_init <- data_initialize_como2(data, f1_dist = 'ash', logreg='linear_susie')
+  fit_init <- data_initialize_como2(data, f1_dist = 'ash', logreg='logistic_ibss')
   fit_fixedf1 <- fit_model(fit_init, data)
+  plot(fit_fixedf1$elbo)
 
   # remember, the elbo computation for logreg is not meaningfull so.... fit$elbo not monotone
-  fit <- fit_model(fit_init, data, estimate_f1=T)
+  fit <- fit_model(fit_fixedf1, data, estimate_f1=T)
+  plot(tail(fit$elbo, 100))
+
+  fit <- fit_model(fit, data, estimate_f1=T)
+  fit <- fit_model(fit, data, estimate_f1=T)
+  fit <- fit_model(fit, data, estimate_f1=T)
+
 }
 
 como2_linear_susie <- function(){
@@ -36,6 +43,7 @@ como2_linear_susie <- function(){
   data <- prep_data_como2(betahat, se, sim$X, sim$Z)
   fit <- data_initialize_como2(data, f1_params = list(mu=0, var = 25), logreg='logistic_ibss', logreg_params = list(L=1))
   fit <- fit_model(fit, data, max_iter = 10)
+  plot(fit$elbo)
   fit$logreg$logistic_ibss$cs
 }
 

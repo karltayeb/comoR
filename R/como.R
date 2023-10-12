@@ -1,9 +1,9 @@
 # Implements covariate moderated ASH "MOre COmponents COvariate MOderated"
 
-#' @title Function implementation the mococomo mode
-#' @details Function implementation the mococomo mode
+#' @title Function implementation the como mode
+#' @details Function implementation the como mode
 #'
-#' @param data an object of class data_mococomo  see \link{\code{set_data_mococomo}}
+#' @param data an object of class data_como  see \link{\code{set_data_como}}
 #' @param modeltype of model currently supported (normal and beta )
 #' @param maxiter numeric, maximum numerous of iteration set to 100 by defaults
 #' @param tol tolerance in term of change in ELBO value for stopping criterion
@@ -13,19 +13,19 @@
 #' (usefull in small sample size)
 #' @export
 #' @example
-#' #Simulate data under the mococomo model
+#' #Simulate data under the como model
 #' sim  <- sim_twococomo()
 #' #preparing the data
-#' data <- set_data_mococomo(betahat = sim$betahat,
+#' data <- set_data_como(betahat = sim$betahat,
 #'                                se = sim$se ,
 #'                                 X = sim$X)
-#' #fit mococomo model
-#' fit <- fit.mococomo(data, maxiter=20)
+#' #fit como model
+#' fit <- fit.como(data, maxiter=20)
 #' plot(fit$elbo)
 #' .monotone(fit$elbo)
 #'
 #' #get posterior quantities
-#' est<- post_mean_sd.mococomo (fit)
+#' est<- post_mean_sd.como (fit)
 #' head(est)
 #'  plot( est$mean, data$betahat)
 #'
@@ -36,19 +36,37 @@
 #' plot(est$mean, post_mean_ash)
 #' # TODO make a more convincing example
 #'
-#'  sim  <- logisticsusie:::sim_mococomo_beta(n=100)
+#'  sim  <- logisticsusie:::sim_como_beta(n=100)
 #'#preparing the data
-#'data <- set_data_mococomo(p = sim$p,
+#'data <- set_data_como(p = sim$p,
 #'                          X = sim$X)
 #'
-#' fit <- fit.mococomo(data, maxiter=20)
+#' fit <- fit.como(data, maxiter=20)
 
-initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg='constant'){
+initialize_como <- function(scales,
+                            n,
+                            p,
+                            p2,
+                            mu0=0,
+                            var0=1,
+                            nullweight=0,
+                            mnreg_type='constant',
+                            param_nnet =list( size=1, decay=1)
+                            ){
   # initialize multinomial susie-- but could be any multinomial regression
   K <- length(scales)
 
-  if(mnreg == 'constant'){
+  if(mnreg_type == 'constant'){
     mnreg <- initialize_constant_mnreg(K)
+  }
+  if( mnreg_type== "mult_reg"){
+
+    mnreg <- initialize_mnreg (mnreg_type = mnreg_type,
+                               K          = K,
+                               n          = n,
+                               p          = p,
+                               param_nnet = param_nnet)
+
   }
 
   #mn_reg <- logisticsusie:::initialize_sbmn_susie(K, n, p, p2, L, mu0, var0)
@@ -68,7 +86,13 @@ initialize_como <- function(scales, n, p, p2, mu0=0, var0=1, nullweight=0, mnreg
 }
 
 #' Use data to autoselect scales
-data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nullweight=0) {
+data_initialize_como <- function(data, max_class,
+                                 scales=NULL,
+                                 mu0=0,
+                                 var0=1,
+                                 nullweight=0,
+                                 mnreg_type='constant',
+                                 param_nnet =list( size=1, decay=1)) {
   como_check_data(data)
 
   if(is.null(scales)){
@@ -80,7 +104,15 @@ data_initialize_como <- function(data, max_class, scales=NULL, mu0=0, var0=1, nu
   n <- nrow(data$X)
   p2 <- ncol(data$Z)
 
-  fit <- initialize_como(scales, n, p, p2, mu0, var0, nullweight)
+  fit <- initialize_como(scales=scales,
+                         n=n,
+                         p=p,
+                         p2=p2,
+                         mu0=mu0,
+                         var0=var0,
+                         nullweight,
+                         mnreg_type=mnreg_type,
+                         param_nnet=param_nnet)
   return(fit)
 }
 
@@ -103,7 +135,7 @@ update_model.como <- function(fit, data, update_assignment = T, update_logreg=T,
   }
 
   if (update_logreg) {
-    fit$mnreg <- update_prior(fit$mnreg, fit$post_assignment)
+    fit$mnreg <- update_prior(fit$mnreg, resps=fit$post_assignment, data=data)
   }
 
   if (track_elbo){
@@ -129,3 +161,22 @@ compute_elbo.como <- function(fit, data) {
 }
 
 
+
+#' @export
+fit.como <- function(x, ...){
+  return(fit_model(x, ...))
+}
+
+
+get_KL.como <- function(fit,data){
+  ll <- sum(fit$post_assignment * fit$data_loglik)
+
+  # Entropy term # E[-log q(y)]
+  assignment_entropy <- sum(apply(fit$post_assignment, 1, logisticsusie:::categorical_entropy))
+
+  # E[log p(y | X, theta)] - KL[q(theta) || p(theta)] SuSiE ELBO
+
+  # put it all together
+  KL <- -ll + assignment_entropy
+  return(KL)
+}

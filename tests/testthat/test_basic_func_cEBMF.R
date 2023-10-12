@@ -1,5 +1,5 @@
 
-library(flashr)
+library(flashier)
 library(softImpute)
 set.seed(1) # for reproducibility
 ftrue = matrix(rnorm(200), ncol=2)

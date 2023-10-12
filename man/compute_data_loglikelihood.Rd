@@ -7,7 +7,7 @@
 compute_data_loglikelihood(fit, ...)
 }
 \arguments{
-\item{fit}{an MoCoCoMo fit object}
+\item{fit}{an como fit object}
 }
 \value{
 n x K matrix of  log likelihood of each data point for each component

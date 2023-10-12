@@ -93,12 +93,10 @@ data_initialize_como2 <- function(data, f1_dist='normal', f1_params = list(), lo
   if(logreg == 'constant'){
     logreg <- rlang::exec(initialize_constant_logreg, !!!logreg_params)
   }
-
   else if(logreg == 'linear_susie'){
     logreg_params$n <- length(f0_loglik)
     logreg <- rlang::exec(initialize_linear_susie, !!!logreg_params)
   }
-
   else if(logreg == 'logistic_ibss'){
     logreg_params$n <- length(f0_loglik)
     logreg <- rlang::exec(initialize_logistic_ibss, !!!logreg_params)

@@ -4,7 +4,20 @@
 \alias{init_cEBMF}
 \title{Initialize cEBMF object}
 \usage{
-init_cEBMF(Y, X_l, X_f, K = 1, type_noise = "constant", init_type = "udv_si")
+init_cEBMF(
+  Y,
+  X_l,
+  X_f,
+  reg_method = "nnet",
+  K = 1,
+  type_noise = "constant",
+  init_type = "udv_si",
+  param_como,
+  maxit_como,
+  param_nnet = list(size = 1, decay = 1),
+  param_como2 = list(),
+  param_susie = list(L = 5)
+)
 }
 \arguments{
 \item{Y}{numerical matrix size NxP}

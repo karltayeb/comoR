@@ -1,6 +1,11 @@
 
-#rm(list = ls())
-library(logisticsusie)  #Simulate data under the mococomo model
+#rm(list = ls())#
+rm(list = ls())
+devtools::load_all(".")
+library(logisticsusie)  #Simulate data under the como model
+library(comoR)
+
+library(softImpute)
 sim11  <- sim_ordinal_mod(n=10000,beta=0,se=2,alpha_start = 0)
 
 

@@ -1,12 +1,13 @@
 
 como2_linear_susie <- function(){
-  sim <- logisticsusie::sim_ser()
+  sim <- logisticsusie:::sim_ser()
   betahat <- rnorm(length(sim$y))
   betahat[sim$y==1] <- rnorm(sum(sim$y == 1), sd=2)
   se <- rep(1, length(sim$y))
 
   data <- prep_data_como2(betahat, se, sim$X, sim$Z)
-  fit <- data_initialize_como2(data, f1_params = list(mu=0, var = 4), logreg='linear_susie')
+  fit <- data_initialize_como2(data, f1_params = list(mu=0, var = 4),
+                               logreg='linear_susie')
   fit <- fit_model(fit, data)
 }
 
@@ -26,8 +27,8 @@ como2_linear_susie <- function(){
 }
 
 como2_linear_susie <- function(){
-  sim <- logisticsusie::sim_ser()
-  gibss <- with(sim, logisticsusie::generalized_ibss(X, y, L=5))
+  sim <- logisticsusie:::sim_ser()
+  gibss <- with(sim, logisticsusie:::generalized_ibss(X, y, L=5))
 
   betahat <- rnorm(length(sim$y))
   betahat[sim$y==1] <- rnorm(sum(sim$y == 1), sd=5)
@@ -62,7 +63,7 @@ william_example <- function(){
   boxplot(obs~mix)
 
   data <- prep_data_como2(obs, se, X, Z = matrix(rep(1, N), nrow=N))
-  fit <- data_initialize_como2(data, L=5)
+  fit <- data_initialize_como2(data, logreg='logistic_ibss',logreg_params = list(L=5))
 
   fit <- update_model(fit, data, estimate_f1 = F)
   fit <- fit_model(fit, data, estimate_f1=T)
@@ -77,14 +78,4 @@ william_example <- function(){
 
   #or via mococomo
 
-  model <- "normal"
-  data <- set_data_mococomo(betahat = obs,
-                            X = X,
-                            se= se)
-  fit <- fit.mococomo(data, maxiter=20)
-  cs <- lapply( 1:length(fit$logreg_list),
-                function(k)
-                  get_all_cs(fit$logreg_list[[k]])
-  )
-  cs
 }

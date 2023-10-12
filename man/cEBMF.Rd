@@ -8,11 +8,17 @@ cEBMF(
   Y,
   X_l,
   X_f,
+  reg_method = "nnet",
   K = 1,
   type_noise = "constant",
   init_type = "udv_si",
   maxit = 100,
-  tol = 0.001
+  tol = 0.001,
+  param_como = list(max_class = 10, mnreg = "mult_reg"),
+  param_nnet = list(size = 1, decay = 1),
+  param_como2 = list(),
+  param_susie = list(L = 5),
+  maxit_como = 10
 )
 }
 \arguments{
@@ -21,6 +27,9 @@ cEBMF(
 \item{X_l}{matrix of size NxJ containning covariates affecting the factors}
 
 \item{X_f}{matrix of size PxT containning covariates affecting the factors}
+
+\item{reg_method}{specify underlying learner for within topic heterogeneity , two methods available 'nnet' or 'logistic_susie'. Default is nnet.
+you can pass the nnet specification through the param_nnet argument and through the param_susie for logistic susie.}
 
 \item{K}{numeric number of factors}
 

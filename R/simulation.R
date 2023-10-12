@@ -191,18 +191,18 @@ sim_susie <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0, idx = NUL
 #' @param beta numeric if of length 1 assume that ervery effect have same beta coefficietns
 #' otherwise should be  of length L, if missing beta <- seq(L) * .2
 #' @export
-sim_twococomo <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0) {
+sim_twococomo <- function(n = 1000, p = 50, L = 3, N = 1, beta ) {
   if (missing(beta)) {
-    sim <- sim_susie(n, p, L, N, alpha = alpha)
+    sim <- sim_susie(n=n, p=p, L=L, N=N )
   } else {
-    sim <- sim_susie(n, p, L, N, beta, alpha = alpha)
+    sim <- sim_susie(n=n, p=p, L=L, N=N , beta=beta  )
   }
 
   sim$beta <- rnorm(n) * sim$y
   sim$se <- 0.1 + rgamma(n, shape = 0.5)
   sim$betahat <- sim$beta + rnorm(n) * sim$se
 
-  class(sim) <- c("normal", "data_mococomo")
+  class(sim) <- c("normal", "data_como")
   return(sim)
 }
 
@@ -229,7 +229,7 @@ sim_twococomo_sparse <- function(n = 1000, p = 50, L = 3, N = 1) {
   sim$se <- 0.1 + rgamma(n, shape = 0.5)
   sim$betahat <- sim$beta + rnorm(n) * sim$se
 
-  class(sim) <- c("normal", "data_mococomo")
+  class(sim) <- c("normal", "data_como")
   return(sim)
 }
 
@@ -250,7 +250,7 @@ sim_mn_susie <- function(n = 1000, p = 50, L = 3, N = 1, K = 10) {
 }
 
 #' @export
-sim_mococomo <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0) {
+sim_como <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0) {
   if (missing(beta)) {
     sim <- sim_susie(n, p, L, N, alpha = alpha)
   } else {
@@ -260,20 +260,20 @@ sim_mococomo <- function(n = 1000, p = 50, L = 3, N = 1, beta, alpha = 0) {
   sim$beta <- rnorm(n) * sim$y * sample(sim$scales, size = n, replace = T)
   sim$se <- 0.1 + rgamma(n, shape = 0.5)
   sim$betahat <- sim$beta + rnorm(n) * sim$se
-  class(sim) <- c("normal", "data_mococomo")
+  class(sim) <- c("normal", "data_como")
   return(sim)
 }
 
-#' @title Simulate data under mococomo model with beta distribution
-#' @details Simulate data under mococomo model with beta distribution
+#' @title Simulate data under como model with beta distribution
+#' @details Simulate data under como model with beta distribution
 #' @export
 
 
-sim_mococomo_beta <- function(n = 1000, p = 50, L = 3, N = 1, beta) {
+sim_como_beta <- function(n = 1000, p = 50, L = 3, N = 1, beta) {
   if (missing(beta)) {
-    sim <- sim_mococomo(n = n, p = p, L = L, N = N)
+    sim <- sim_como(n = n, p = p, L = L, N = N)
   } else {
-    sim <- sim_mococomo(n = n, p = p, L = L, N = N, beta = beta)
+    sim <- sim_como(n = n, p = p, L = L, N = N, beta = beta)
 
   }
 
@@ -384,4 +384,154 @@ sim_mixture_beta <- function(n = 1000, par = list(alpha = c(1, 1), beta = c(1, 1
     ))
   }
   return(temp)
+}
+
+
+
+
+
+
+
+#### Simulation cEBMF----
+#'@export
+sim_func_cEBMF <- function( N=2000, # number of row
+                            L=100, #number of columns
+                            K=2, #number of factor
+                            P1=20 , # number of cov for row /loadings
+                            P2=20, # number of cov for col /factors
+                            beta0=-2,
+                            beta1=2,
+                            noise_level= 3,
+                            max_iter_cEBMF=20,
+                            max_iter_como=20,
+                            max_class=10,
+                            seed
+){
+
+  library(softImpute)
+  library(susieR)
+  library(mvtnorm)
+  data(N3finemapping)
+  attach(N3finemapping)
+  library(comoR)
+
+  if( missing( seed)){
+    set.seed(rpois(lambda = 100,n=1))
+  }else{
+    set.seed(seed)
+  }
+  L_l <-  sample (1:20,size=1)
+  L_f <-  sample (1:20,size=1)
+
+
+
+
+
+  X_l <-   rmvnorm(N,sigma=cov(N3finemapping$X[1:100,1:P1]))
+  X_f <-    rmvnorm(L,sigma=cov(N3finemapping$X[1:100,1:P2]))
+
+
+  true_pos_l <- sample( 1:P1, size=L_l, replace=FALSE)
+  true_pos_f <- sample( 1:P2, size=L_f, replace=FALSE)
+
+
+
+
+  true_l  <- list()
+  true_f  <- list()
+
+  for( k in 1:K){
+
+
+
+    samp_prob <- 1/(1 +exp(-(beta0+beta1*X_l[,k])))
+    lk <- c()
+    mix <- c()
+    for ( i in 1:N){
+      mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
+      lk <- c(lk, mix[i]*rnorm(1,sd=3))
+    }
+
+
+    samp_prob <- 1/(1 +exp(-(beta0+beta1*X_f[,k])))
+    fk <- c()
+    mix <- c()
+    for ( j in 1:L){
+
+      mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[j], samp_prob[j])))
+      fk <- c(fk, mix[j]*rnorm(1,sd=3))
+    }
+
+    true_l[[k]] <- lk
+    true_f[[k]] <- fk
+
+  }
+
+
+  Y_true <- Reduce("+", lapply( 1:K, function(k) true_l[[k]]%*%t(true_f[[k]])
+  )
+  )
+
+  Y_obs <- Y_true+ matrix( rnorm(N*L, sd= noise_level), ncol=L)
+
+
+  res_susie <- cEBMF  (Y=Y_obs,
+                 X_l=X_l,
+                 X_f=X_f,
+                 reg_method="logistic_susie",
+                 K=K, init_type = "udv_si",
+                 param_como = list(max_class=max_class,mnreg="mult_reg"),
+                 maxit_como =max_iter_como ,
+                 param_nnet= list(size=3, decay=1.2),
+                 maxit=max_iter_cEBMF)
+
+  res_nnet <- cEBMF  (Y=Y_obs,
+                 X_l=X_l,
+                 X_f=X_f,
+                 reg_method="nnet",
+                 K=K, init_type = "udv_si",
+                 param_como = list(max_class=max_class,mnreg="mult_reg"),
+                 maxit_como =max_iter_como ,
+                 param_nnet= list(size=3, decay=1.2),
+                 maxit=max_iter_cEBMF)
+
+  f <- flashier::flash(Y_obs)
+  Y_est_susie <- Reduce("+", lapply( 1:res_susie$K, function(k) res_susie $loading[,k] %*%t(res_susie $factor[,k] ) ))
+  Y_est_nnet <- Reduce("+", lapply( 1:res_susie$K, function(k) res_nnet $loading[,k] %*%t(res_nnet $factor[,k] ) ))
+
+
+  rmse_cEBMF_susie   <- sqrt(mean( (Y_true-Y_est_susie)^2))
+  rmse_cEBMF_nnet   <- sqrt(mean( (Y_true-Y_est_susie)^2))
+  rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
+  rmse         <- c(rmse_cEBMF_susie,rmse_cEBMF_nnet , rmse_flash)
+  names(rmse ) <- c("rmse_cEBMF_susie","rmse_cEBMF_nnet", "rmse_flash")
+
+
+  par <-  c( N,
+             L ,
+             K ,
+             P1 ,
+             P2 ,
+             beta0 ,
+             beta1 ,
+             noise_level ,
+             max_iter_cEBMF ,
+             max_iter_como
+  )
+ names( par)  <-  c( "N",
+                     "L"  ,
+                     "K" ,
+                     "P1"  ,
+                     "P2" ,
+                     "beta0"  ,
+                     "beta1" ,
+                     "noise_level"  ,
+                     "max_iter_cEBMF" ,
+                     "max_iter_como"
+ )
+
+  out <- list(rmse      = rmse,
+              par       = par
+  )
+  return( out)
 }

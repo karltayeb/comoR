@@ -1,27 +1,38 @@
 #rm(list = ls())
-library(logisticsusie)  #Simulate data under the mococomo model
+devtools::load_all(".")
+library(logisticsusie)  #Simulate data under the como model
 library(comoR)
+
+library(softImpute)
 sim11  <- sim_twococomo(n=1000)#contains all the info
 
 
 #preparing the data
 
-data11 <-set_data_mococomo(betahat = sim11$betahat,
-                           se = sim11$se ,
-                           X  = sim11$X)
+
+
+data11 <-set_data_como(betahat = sim11$betahat,
+                       se = sim11$se ,
+                       X  = sim11$X) # prepare the data
+
+ fit <- data_initialize_como(data=data11, max_class=5, scales = c(0, 1, 5, 10)) # initialize the model from the data
+fit <- fit_model(fit, data11, max_iter = 10)
+
+
+
+
 sim12  <- sim_twococomo(n=1000)
 
-fit <- fit.mococomo(data11)
-data12 <-set_data_mococomo(betahat = sim12$betahat,
+data12 <-set_data_como(betahat = sim12$betahat,
                            se = sim12$se ,
                            X  = sim12$X)
 sim21  <- sim_twococomo(20)
 #preparing the data
-data21 <-set_data_mococomo(betahat = sim21$betahat,
+data21 <-set_data_como(betahat = sim21$betahat,
                            se = sim21$se ,
                            X  = sim21$X)
 sim22  <- sim_twococomo(20)
-data22 <-set_data_mococomo(betahat = sim22$betahat,
+data22 <-set_data_como(betahat = sim22$betahat,
                            se = sim22$se ,
                            X  = sim22$X)
 
@@ -39,34 +50,43 @@ image(Y_true)
 
 K=2
 dim(Y)
-library(softImpute)
-cEBMF.obj <- init_cEBMF (Y, X_l,X_f,K=2, init_type = "udv_si")
+cEBMF.obj <- init_cEBMF (Y, X_l,X_f,K=2, init_type = "udv_si",
+                         param_como  = list(max_class=10,mnreg_type="mult_reg"),
+                         param_nnet  =list( size=1, decay=1),
+                         param_como2 = list(),
+                         param_susie =  list(L=5),
+                         maxit_como  = 10)
 plot(cEBMF.obj$loading[,1] ,data11$betahat)
 
 
 
-for ( o in 1:4){
+for ( o in 1:20){
   for ( k in 1:K){
     Rk <- cal_partial_residuals.cEBMF(cEBMF.obj,k)
     l_k <- cal_expected_loading( cEBMF.obj, Rk,k)
-    t_data <- set_data_mococomo(betahat = l_k$l_i_hat,
+    t_data <- set_data_como(betahat = l_k$l_i_hat,
                                 se      = l_k$s_i,
                                 X       = cEBMF.obj$X_l )
-    t_fit <- fit.mococomo(t_data)
 
-    fitted_loading <- post_mean_sd.mococomo (t_fit )
+    t_fit <- data_initialize_como(t_data, max_class=5, scales = c(0, 1, 5, 10)) # initialize the model from the data
+    t_fit <- fit_model( t_fit, t_data, max_iter = 10)
+
+
+    fitted_loading <- post_mean_sd.como (fit= t_fit, data=t_data )
     cEBMF.obj$loading[,k] <-  fitted_loading$mean
     cEBMF.obj$loading2[,k] <- fitted_loading$sd^2+ fitted_loading$mean^2
 
     #factor update
 
     f_k <- cal_expected_factor( cEBMF.obj, Rk,k)
-    t_data <- set_data_mococomo(betahat = f_k$f_j_hat,
+    t_data <- set_data_como(betahat    = f_k$f_j_hat,
                                 se      = f_k$s_j,
                                 X       = cEBMF.obj$X_f )
-    t_fit <- fit.mococomo(t_data)
+    t_fit <- data_initialize_como(t_data, max_class=5, scales = c(0, 1, 5, 10)) # initialize the model from the data
+    t_fit <- fit_model( t_fit, t_data, max_iter = 10)
 
-    fitted_factor <- post_mean_sd.mococomo (t_fit )
+
+    fitted_factor <- post_mean_sd.como (fit= t_fit, data=t_data )
     cEBMF.obj$factor[,k] <-  fitted_factor $mean
     cEBMF.obj$factor2[,k] <-  fitted_factor$sd^2+ fitted_factor$mean^2
 
@@ -82,7 +102,7 @@ for ( o in 1:4){
 
 
 Y_est <- cEBMF.obj$loading[,1]%*%t(cEBMF.obj$factor[,1])+cEBMF.obj$loading[,2]%*%t(cEBMF.obj$factor[,2])
-library(flashr)
+library(flashier)
 f <- flash(Y)
 plot( Y_est, Y )
 plot( Y_true, Y )
@@ -92,7 +112,7 @@ cor( c(Y_true), c(Y_est))
 cor( c(Y_true), c(Y))
 
 
-
+cor( c(Y_true), c(fitted(f)))
 
 
 
@@ -134,10 +154,9 @@ for (i in 1:10) {
 }
 
 
-
+library(flashier)
 Y_est <- Reduce("+", lapply( 1:cEBMF.obj$K, function(k) cEBMF.obj$loading[,k]%*%t(cEBMF.obj$factor[,k]) ))
-f = flash(Y, K=3 ,#ebnm_fn= 'ebnm_ash' ,
-          var_type = "constant")
+f = f <- flashier::flash(Y_obs)
 plot( cEBMF.obj$elbo)
 plot( Y_est,Y)
 points( Y_est,Y_true, col="green")
@@ -146,7 +165,7 @@ plot( fitted(f),Y_true)
 points( Y_est,Y_true, col="green")
 plot( Y_est,fitted(f))
 
-
+library(nnet)
 cEBMF.fit <- cEBMF (Y, X_l,X_f,K=1, init_type = "udv_si")
 cEBMF.fit$elbo
 
@@ -165,12 +184,11 @@ Y_est <- Reduce("+", lapply( 1:cEBMF.obj$K, function(k) cEBMF.obj$loading %*%t(c
 Y_fit <- Reduce("+", lapply( 1:cEBMF.fit $K, function(k) cEBMF.fit $loading %*%t(cEBMF.fit $factor ) ))
 plot( Y_est, cEBMF.fit$Y_fit)
 abline(a=0,b=1)
-f = flash(Y, K=1 ,#ebnm_fn= 'ebnm_ash' ,
-          var_type = "constant")
+ f <- flashier::flash(Y )
 plot( cEBMF.obj$elbo)
 plot( Y_est,Y)
 points( Y_est,Y_true, col="green")
 
 plot( fitted(f),Y_true)
-points( Y_est,Y_true, col="green")
+points(Y_true, Y_est, col="green")
 plot( Y_est,fitted(f))

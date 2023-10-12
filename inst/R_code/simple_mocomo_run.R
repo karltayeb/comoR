@@ -1,11 +1,11 @@
 set.seed(1)
 
-sim  <- sim_mococomo(n=1000)
+sim  <- sim_como(n=1000)
 #preparing the data
-data <- set_data_mococomo(betahat  = sim$betahat,
+data <- set_data_como(betahat  = sim$betahat,
                           X = sim$X,
                           se= sim$se)
-#fit mococomo model
+#fit como model
 maxiter   = 100
 tol       = 1e-3
 max_class = 10
@@ -13,7 +13,7 @@ mult      = 2
 nullweight     =10
 
 #working init
-fit <- init.mococomo(data,
+fit <- init.como(data,
                      max_class = max_class,
                      mult   = mult,
                      upper     = upper,
@@ -21,19 +21,19 @@ fit <- init.mococomo(data,
 
 )
 str(fit$logreg_list)
-  compute_elbo.mococomo(fit)
+  compute_elbo.como(fit)
 
 
 
 
- fit <- iter.mococomo(fit)
+ fit <- iter.como(fit)
 
 
  #works with two distribution (left and right)
-  tfit <- fit.mococomo  (data,nullweight = 4 )
+  tfit <- fit.como  (data,nullweight = 4 )
 
   tfit$elbo
-  tfit2 <- fit.mococomo  (data,nullweight = 10 )
+  tfit2 <- fit.como  (data,nullweight = 10 )
   tfit$elbo
   tfit2$elbo
 plot(tfit$post_assignment[,1], tfit2$post_assignment[,1])

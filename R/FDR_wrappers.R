@@ -1,69 +1,98 @@
-#' @param fit a fitted mococomo object
+#' @param fit a fitted como object
 #' @param outputlevel	 Determines amount of output. outputlevel=1 provide simplest output (which should be enough for most applications)
-#' outputlevel= also output the entire mococomo fitted object
+#' outputlevel= also output the entire como fitted object
 #'
 #'
  # TODO work on presentation of the output
-prep_out_FDR_wrapper <- function(fit, outputlevel=1,n_sim ){
-  if(fit$model=="normal"){
-    est    <- post_mean_sd.mococomo (fit)
-    lfdr   <- get_lfdr_mixnorm(fit)
+prep_out_FDR_wrapper <- function(fit,data, outputlevel=1,n_sim, min.purity=0.3 ){
+  #  if(fit$model=="normal"){
+    est    <- post_mean_sd  (fit,data)
+    lfdr   <- get_lfdr(fit,data)
     qvalue <- cal_qvalue(lfdr)
-    resdf <- data.frame(betahat       = fit$data$betahat,
-                        se            = fit$data$se,
+    resdf <- data.frame(betahat       =  data$betahat,
+                        se            =  data$se,
                         lfdr          = lfdr,
                         qvalue        = qvalue,
                         PosteriorMean = est[,1],
                         PosteriorSD   = est[,2]
                         )
-  }
-
-  if(fit$model=="beta"){
+    # }
+  #if(fit$model=="beta"){
 
     # case where mixture of beta with increasing and decreasing value
 
-      lfdr   <- get_lfdr_beta(fit)
-      qvalue <- cal_qvalue(lfdr)
-      FDR <- assesor.mococomo_beta(fit,n_sim=n_sim )
-      if("p"%in% names(fit$data)){
-        resdf <- data.frame(p       = fit$data$p,
-                            lfdr    = lfdr,
-                            qvalue  = qvalue,
-                            FDR     = FDR
-        )
-      }
-      if("zscore" %in% names(fit$data) ){
-        resdf <- data.frame(zscore  = fit$data$zscore,
-                            lfdr    = lfdr,
-                            qvalue  = qvalue,
-                            FDR     = FDR
-        )
-      }
+  #    lfdr   <- get_lfdr_beta(fit)
+  #    qvalue <- cal_qvalue(lfdr)
+  #    FDR <- assesor.como_beta(fit,n_sim=n_sim )
+  #    if("p"%in% names(fit$data)){
+  #      resdf <- data.frame(p       = fit$data$p,
+  #                           lfdr    = lfdr,
+  #                           qvalue  = qvalue,
+  #                          FDR     = FDR
+  #      )
+  #    }
+  #    if("zscore" %in% names(fit$data) ){
+  #      resdf <- data.frame(zscore  = fit$data$zscore,
+  #                          lfdr    = lfdr,
+  #                           qvalue  = qvalue,
+  #                          FDR     = FDR
+  #      )
+  #     }
 
 
 
+  # }
+
+
+
+  est_purity <- do.call(c,cal_purity_cFDR(l_cs = fit$logreg$logistic_ibss$cs,
+                           as.matrix(data$X))
+                        )
+
+
+  est_max_bf <- do.call(c, lapply( 1: length(fit$logreg$logistic_ibss$fits), function(l)  max (fit$logreg$logistic_ibss$fits[[l]]$lbf)))
+
+  if ( length(which( est_purity> min.purity))==0){
+    warning(paste("No CS with a purity of at least ", min.purity, "was detecting, reruning all the dummy CS"))
+
+    fitted_effect <-  do.call( cbind, lapply(1:length(fit$logreg$logistic_ibss$cs),
+                                             function(k)
+                                               fit$logreg$logistic_ibss$alpha[ k,] *fit$logreg$logistic_ibss$mu[k,]
+    )
+    )
+    cs = fit$logreg$logistic_ibss$cs
+    is_dummy=TRUE
+  }else{
+
+
+
+      idx <- which( est_purity> min.purity)
+      fitted_effect <-  do.call( cbind, lapply(idx ,
+                                               function(k)
+                                                 fit$logreg$logistic_ibss$alpha[ k,] *fit$logreg$logistic_ibss$mu[k,]
+                           )
+                )
+      cs = fit$logreg$logistic_ibss$cs[ idx ]
+      is_dummy=FALSE
   }
 
 
-  ### TODO: remove dummy CS
-  cs <- lapply( 1:length(fit$logreg_list),
-                function(k)
-                 get_all_cs(fit$logreg_list[[k]])
-                )
-  fitted_effect <-  lapply(1:length(fit$logreg_list),
-                          function(k)
-                            fit$logreg_list[[k]]$params$alpha*fit$logreg_list[[k]]$params$mu
-                         )
   if(outputlevel==1){
     out <- list(result =resdf,
                 cs=cs,
-                fitted_effect=fitted_effect)
+                fitted_effect=fitted_effect,
+                est_purity = est_purity ,
+                est_max_bf=est_max_bf,
+                is_dummy=is_dummy)
   }
   if(outputlevel==2){
     out <- list(result =resdf,
                 cs=cs,
                 fitted_effect=fitted_effect,
-                full_obj = fit)
+                full_obj = fit,
+                est_purity = est_purity ,
+                est_max_bf=est_max_bf,
+                is_dummy=is_dummy)
   }
   return(out)
 
@@ -99,29 +128,22 @@ cal_qvalue <- function(lfdr)
 }
 
 
-assesor.mococomo_beta <- function(fit,n_sim){
+assesor.como_beta <- function(fit,n_sim){
 
-  up <- exp(compute_assignment_jj_bound.mococomo(fit))[,1]
-tt <-exp(compute_assignment_jj_bound.mococomo(fit))
-tt2 <- 1- apply(tt,1,sum)
- low <-  up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
+  up <- exp(compute_assignment_jj_bound.como(fit))[,1]
+  tt <-exp(compute_assignment_jj_bound.como(fit))
+  tt2 <- 1- apply(tt,1,sum)
+  low <-  up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
 
-#obs_assesor <- up/low #observed assessor
-
- #up <- 1- apply(fit$post_assignment[,-1],1,sum)
- #low <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit, fit$data))[,-1],1,sum)
 
 obs_assesor <- up/low
-
-#simualted null
 sim_null <- list()
 tdata <- fit$data
 
 
 temp_f <- function(i){
   tdata$p  <-  rep(runif(1), (nrow(fit$data$X)))
-  # low_sim <-  up + apply(fit$post_assignment[,-1]*exp(compute_data_loglikelihood(fit,tdata)[,-1]),1,sum)
-   low_sim <-   up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit,tdata))[,-1],1,sum)
+  low_sim <-   up + apply(cbind(tt[,-1] )*exp(compute_data_loglikelihood(fit,tdata))[,-1],1,sum)
   return(up/low_sim)
 }
 
@@ -138,20 +160,6 @@ for( i in 1:nrow(H0_ind)){
   H0_ind[i,] <-  H0_ind[i,] [order( H0_ind[i,] )]
 }
 
-
-
-BC_est <- c()
- for( i in 1:length(obs_assesor)){
-   if( length(which(H0_ind[i,]< obs_assesor[i]))==0)
-   {
-     obs_prob <- 1
-
-   }else{
-     obs_prob <-  ( length(which(H0_ind[i,]< obs_assesor[i]))+1)/length(H0_ind[i,])
-   }
-   BC_est <-  c(BC_est, obs_prob)
-
-}
 
 
 
@@ -185,12 +193,16 @@ top_BC <-  1 +  sapply(X = obs_assesor,
 
 FDR_est <- ( top_BC /(bottom ))
 
+
+
 FDR_est_final <- do.call(c,lapply(1:length(obs_assesor), function(i)
                                                  min(FDR_est[which(obs_assesor>=obs_assesor[i])])
                                  )
                           )
 
-
+#FDP_est <- FDR_est
+#plot( log10(obs_assesor),FDP_est, xlim=c(-2.72,-2.4))
+#points(log10(obs_assesor),FDR_est_final , col="red")
 
 return(FDR_est_final )
 

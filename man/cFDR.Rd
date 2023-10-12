@@ -7,9 +7,9 @@
 cFDR(
   betahat,
   se,
-  pvalue,
-  zscore,
   X,
+  Z,
+  param_como2 = list(logreg = "logistic_ibss", logreg_params = list(L = 5)),
   coverage = 0.95,
   maxiter = 100,
   tol = 0.001,
@@ -17,15 +17,17 @@ cFDR(
   mult = 2,
   upper = FALSE,
   outputlevel = 1,
-  n_sim = 50000,
+  n_sim = 1000,
   alpha,
   nullweight = 4,
-  verbose = TRUE
+  verbose = TRUE,
+  max_iter_como = 10,
+  min.purity = 0.3
 )
 }
 \arguments{
 \item{outputlevel}{Determines amount of output. outputlevel=1 provide simplest output (which should be enough for most applications)
-outputlevel= also output the entire mococomo fitted object}
+outputlevel= also output the entire como fitted object}
 }
 \description{
 Main function gathering all the routines for different FDR estimation procedures

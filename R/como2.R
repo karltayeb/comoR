@@ -71,10 +71,8 @@ update_model.como2 <- function(fit, data, estimate_f1=FALSE, track_elbo=T){
 }
 
 #' @export
-data_initialize_como2 <- function(data, mu0=0, var0=1, f1_dist='normal', f1_params = list(), logreg='constant', logreg_params = list()){
+data_initialize_como2 <- function(data, f1_dist='normal', f1_params = list(), logreg='constant', logreg_params = list()){
 
-
-  name_logreg <- logreg
   # initialize component distribution
   f0 <- point_component(mu = 0)
 
@@ -83,22 +81,23 @@ data_initialize_como2 <- function(data, mu0=0, var0=1, f1_dist='normal', f1_para
     !!!f1_params # unpack list of params
   )
 
+  # fit f1 with full data to initialize
+  f1 <- update_params(f1, data$betahat, data$se, rep(1, length(data$betahat)))
+
   # initialize posterior assignment
   f0_loglik <- convolved_logpdf(f0, data$betahat, data$se)
   f1_loglik <- convolved_logpdf(f1, data$betahat, data$se)
   logits <- f1_loglik - f0_loglik
 
   # initialize logreg
-  if(name_logreg == 'constant'){
+  if(logreg == 'constant'){
     logreg <- rlang::exec(initialize_constant_logreg, !!!logreg_params)
   }
-
-  if(name_logreg == 'linear_susie'){
+  else if(logreg == 'linear_susie'){
     logreg_params$n <- length(f0_loglik)
     logreg <- rlang::exec(initialize_linear_susie, !!!logreg_params)
   }
-
-  if(name_logreg == 'logistic_ibss'){
+  else if(logreg == 'logistic_ibss'){
     logreg_params$n <- length(f0_loglik)
     logreg <- rlang::exec(initialize_logistic_ibss, !!!logreg_params)
   }

@@ -130,3 +130,4 @@ update_params.beta <- function(dist, p, se = 1, weights) {
   # TODO: decide how to update alpha
   # weights come from posterior assignment probabilities.
 }
+

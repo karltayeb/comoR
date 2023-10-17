@@ -549,7 +549,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
                          n_effect     = n_effect ,
                          purity       =  est_purity [1:length( nfalse_effect)],
                          maxLBF       = est_max_bf[1:length( nfalse_effect)],
-                         size_set     =size_set,
+                         size_set     =  size_set [1:length( nfalse_effect)],
                          factor       = rep( k, length( nfalse_effect))
 
     )
@@ -598,7 +598,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
                                   n_effect     = n_effect ,
                                   purity       =  est_purity [1:length( nfalse_effect)],
                                   maxLBF       = est_max_bf[1:length( nfalse_effect)],
-                                  size_set     = size_set,
+                                  size_set     =  size_set [1:length( nfalse_effect)],
                                   factor       = rep( k, length( nfalse_effect))
 
      )

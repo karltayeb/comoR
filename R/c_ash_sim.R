@@ -381,6 +381,10 @@ c_ash_sim <- function( N=1000,
    )
   )
 
+  size_set <- do.call(c, lapply(1:length(res$cs), function(k)
+    res$cs[[k]]$size
+  )
+  )
   summary_out <- c( rmse_mco,
             rmse_ash,
             power_mco,
@@ -443,9 +447,10 @@ c_ash_sim <- function( N=1000,
                           lfdr_cash =res$result$lfdr,
                           true_lfdr = true_lfdr)
 
-    out <- list( summary= summary_out,
-                 df_bf =  df_bf,
-                 lfdr_est =lfdr_est
+    out <- list( summary  = summary_out,
+                 df_bf    = df_bf,
+                 lfdr_est =lfdr_est,
+                 size_set = size_set
     )
   }
   return(out)

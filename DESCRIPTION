@@ -1,6 +1,6 @@
 Package: comoR
 Title: covariate moderated FDR methods based SuSiE
-Version: 0.0.0.90054
+Version: 0.0.0.90055
 Authors@R: c(person("Karl", "Tayeb", ,  "ktayeb@uchicago.edu", role = c("aut", "cre") ),
               person("William ", "Denault",  , "wdenault@uchicago.edu", role = c("aut") ))
 Description: Implements logistic, multinomial and categorical SuSiE as well as some additional FDR and shrinkage methods 

@@ -439,7 +439,7 @@ set_data_fit.cEBMF <- function(cEBMF.obj,l_k=NULL, f_k=NULL ){
   if(!is.null(l_k)){
 
     if( cEBMF.obj$reg_method=="nnet"){
-      data <- set_data_como(betahat = l_k$l_i_hat,
+      data <- set_data_como(betahat   = l_k$l_i_hat,
                               se      = l_k$s_i,
                               X       = cEBMF.obj$X_l )
       fit <-  rlang::exec( "data_initialize_como", !!!cEBMF.obj$param_como ,
@@ -451,9 +451,9 @@ set_data_fit.cEBMF <- function(cEBMF.obj,l_k=NULL, f_k=NULL ){
       N <- nrow(cEBMF.obj$X_l)
 
       data  <- prep_data_como2(betahat = l_k$l_i_hat,
-                              se      = l_k$s_i,
-                              X       = cEBMF.obj$X_l,
-                              Z = matrix(rep(1, N), nrow=N)
+                              se       = l_k$s_i,
+                              X        = cEBMF.obj$X_l,
+                              Z        = matrix(rep(1, N), nrow=N)
                                 )
       fit <- rlang::exec( "data_initialize_como2",
                                      !!!cEBMF.obj$param_como2,

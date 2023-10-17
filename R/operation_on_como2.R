@@ -9,33 +9,50 @@
 post_mean_sd.como2 <- function(fit,data) {
 
 
-  t_post_var <- do.call(
-    rbind,
-    lapply(
-      1:length( data$betahat),
-      function(i) t_ind_var.como2(fit=fit,
-                                 data=data,
-                                 i=i)
-    )
-  )
-  t_post_var[,1] <- 0
-  tt <- compute_post_assignment (fit, data)
+  if( inherits(fit$f1,"ash_component")){
 
-  fit$post_assignment <- cbind( 1-tt,tt)
-  out <- do.call(
-    rbind,
-    lapply(
-      1:length(data$betahat),
-      function(i) cal_ind_moment12(fit=fit,
-                                   data=data,
-                                   t_post_var=t_post_var,
-                                   i=i)
+    tt <- compute_post_assignment (fit, data)
+
+    fit$post_assignment <- cbind( 1-tt,tt)
+    ash_data <-  ashr::set_data(data$betahat,data$se)
+
+    post_mean <- tt*ashr::postmean(ashr::get_fitted_g(fit$f1$ash),ash_data )
+    post_sd <- tt*ashr::postsd(ashr::get_fitted_g(fit$f1$ash),ash_data )
+    out <- data.frame(
+      mean =post_mean,
+      sd = post_sd
+    ) #
+  }else{
+    t_post_var <- do.call(
+      rbind,
+      lapply(
+        1:length( data$betahat),
+        function(i) t_ind_var.como2(fit=fit,
+                                    data=data,
+                                    i=i)
+      )
     )
-  )
-  out <- data.frame(
-    mean = do.call(c, out[, 1]),
-    sd = do.call(c, out[, 2])
-  ) # could be skip for speed
+    t_post_var[,1] <- 0
+    tt <- compute_post_assignment (fit, data)
+
+    fit$post_assignment <- cbind( 1-tt,tt)
+    out <- do.call(
+      rbind,
+      lapply(
+        1:length(data$betahat),
+        function(i) cal_ind_moment12(fit=fit,
+                                     data=data,
+                                     t_post_var=t_post_var,
+                                     i=i)
+      )
+    )
+    out <- data.frame(
+      mean = do.call(c, out[, 1]),
+      sd = do.call(c, out[, 2])
+    ) # could be skip for speed
+
+  }
+
 
 
 

@@ -481,11 +481,12 @@ sim_func_cEBMF <- function( N=2000, # number of row
                  reg_method="logistic_susie",
                  K=K, init_type = "udv_si",
                  param_como = list(max_class=max_class,mnreg="mult_reg"),
+                 param_como2 = list(f1_dist = 'ash'),
                  maxit_como =max_iter_como ,
                  param_nnet= list(size=3, decay=1.2),
                  maxit=max_iter_cEBMF)
 
-  res_nnet <- cEBMF  (Y=Y_obs,
+   res_nnet <- cEBMF  (Y=Y_obs,
                  X_l=X_l,
                  X_f=X_f,
                  reg_method="nnet",
@@ -505,6 +506,104 @@ sim_func_cEBMF <- function( N=2000, # number of row
   rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
   rmse         <- c(rmse_cEBMF_susie,rmse_cEBMF_nnet , rmse_flash)
   names(rmse ) <- c("rmse_cEBMF_susie","rmse_cEBMF_nnet", "rmse_flash")
+
+   fm_factor <- list()
+
+  for ( k in 1:length(res_susie$model_factor)){
+
+
+    res <-res_susie$model_factor[[k]]$logreg$logistic_ibss
+    n_effect <-   do.call(c, #number of effect per CS
+
+                          lapply(1:length(res$cs), function(k)
+                            length(which(true_pos_f%in% res$cs[[k]]$cs))
+                          )
+    )
+
+
+
+
+    #number of effect found
+    nfalse_effect <- do.call(c, lapply(1:length(res$cs), function(k)
+      ifelse( length(which(true_pos_f%in%res$cs[[k]]$cs ))==0, 1,0)
+    )
+    )
+
+    size_set <- do.call(c, lapply(1:length(res$cs), function(k)
+      res$cs[[k]]$size
+    )
+    )
+
+    est_purity <- do.call(c,cal_purity_cFDR(l_cs =  res$cs,
+                                            as.matrix(X_f))
+    )
+
+
+    #est_max_bf <- do.call(c, lapply( 1: length(res_susie$model_factor[[k]]$logreg$logistic_ibss$fits ),
+    #                                  function(l)  max (res_susie$model_factor[[k]]$logreg$logistic_ibss$fits[[l]]$lbf)))
+    est_max_bf <- do.call(c, lapply( 1: length(res$fits ),
+                                     function(l)  max (res$fits[[l]]$lbf)))
+
+
+    fm_factor[[k]]<- data.frame (nfalse_effect= nfalse_effect,
+                         n_effect     = n_effect ,
+                         purity       =  est_purity [1:length( nfalse_effect)],
+                         maxLBF       = est_max_bf[1:length( nfalse_effect)],
+                         factor       = rep( k, length( nfalse_effect))
+
+    )
+
+  }
+
+   fm_loadings <- list()
+
+   for ( k in 1:length(res_susie$model_factor)){
+
+
+     res <-res_susie$model_loading[[k]]$logreg$logistic_ibss
+     n_effect <-   do.call(c, #number of effect per CS
+
+                           lapply(1:length(res$cs), function(k)
+                             length(which(true_pos_f%in% res$cs[[k]]$cs))
+                           )
+     )
+
+
+
+
+     #number of effect found
+     nfalse_effect <- do.call(c, lapply(1:length(res$cs), function(k)
+       ifelse( length(which(true_pos_f%in%res$cs[[k]]$cs ))==0, 1,0)
+     )
+     )
+
+     size_set <- do.call(c, lapply(1:length(res$cs), function(k)
+       res$cs[[k]]$size
+     )
+     )
+
+     est_purity <- do.call(c,cal_purity_cFDR(l_cs =  res$cs,
+                                             as.matrix(X_f))
+     )
+
+
+     #est_max_bf <- do.call(c, lapply( 1: length(res_susie$model_factor[[k]]$logreg$logistic_ibss$fits ),
+     #                                  function(l)  max (res_susie$model_factor[[k]]$logreg$logistic_ibss$fits[[l]]$lbf)))
+     est_max_bf <- do.call(c, lapply( 1: length(res$fits ),
+                                      function(l)  max (res$fits[[l]]$lbf)))
+
+
+     fm_loadings[[k]]<- data.frame (nfalse_effect= nfalse_effect,
+                                  n_effect     = n_effect ,
+                                  purity       =  est_purity [1:length( nfalse_effect)],
+                                  maxLBF       = est_max_bf[1:length( nfalse_effect)],
+                                  factor       = rep( k, length( nfalse_effect))
+
+     )
+
+   }
+
+
 
 
   par <-  c( N,
@@ -531,7 +630,10 @@ sim_func_cEBMF <- function( N=2000, # number of row
  )
 
   out <- list(rmse      = rmse,
-              par       = par
+              par       = par,
+              fm_loadings=  do.call(rbind,fm_loadings),
+              fm_factor= do.call(rbind,fm_factor)
+
   )
   return( out)
 }

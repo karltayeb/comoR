@@ -18,6 +18,7 @@ cFDR <- function( betahat,
                   X,
                   Z,
                   param_como2 = list(logreg='logistic_ibss',
+                                     f1_dist = 'ash',
                                      logreg_params = list(L=5)
                                      ),
                   coverage  = 0.95,

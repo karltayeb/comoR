@@ -30,8 +30,8 @@ ash_component <- function(ash_args = list()){
   return(f)
 }
 
-ll_obs_normalmix <- function(betahat, sebetahat, sds, pi){
-  matrixStats::logSumExp(dnorm(betahat, 0, sqrt(sebetahat^2 + sds^2), log=T) + log(pi))
+ll_obs_normalmix <- function(betahat, se, sds, pi){
+  matrixStats::logSumExp(dnorm(betahat, 0, sqrt(se^2 + sds^2), log=T) + log(pi))
 }
 
 #' @export
@@ -40,12 +40,12 @@ convolved_logpdf.ash_component <- function(dist, betahat, se){
   # if you use outputlevel >= 3 in ash you get normalized likelihoods which could be more general
   # but you still need a consistent way to un-normalize back to log-likelihoods
   if(!is.null(dist$ash$fitted_g)){
-    if(!class(dist$ash$fitted_g == 'normalmix')){
+    if( !inherits(dist$ash$fitted_g , "normalmix") ){
       stop('convolved_logpdf.ash_component only implemented for normalmix')
     }
     sd <- dist$ash$fitted_g$sd
     pi <- dist$ash$fitted_g$pi
-    ll <- purrr::map2_dbl(betahat, sebetahat, ~ll_obs_normalmix(.x, .y, sd, pi))
+    ll <- purrr::map2_dbl(betahat, se, ~ll_obs_normalmix(.x, .y, sd, pi))
   } else{
     # case: we haven't called ash yet
     # return loglik under null -> weights = 1/2, this will sort out next iteration...
@@ -57,7 +57,7 @@ convolved_logpdf.ash_component <- function(dist, betahat, se){
 #' @export
 update_params.ash_component <- function(dist, betahat, se, weights) {
   args <- c(
-    list(betahat = betahat, sebetahat = se, weights=weights),
+    list(betahat = betahat, se = se, weights=weights),
     dist$ash_args
   )
   # initialize with g = fitted g from last iteration--

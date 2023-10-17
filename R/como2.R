@@ -85,8 +85,12 @@ data_initialize_como2 <- function(data, f1_dist='normal', f1_params = list(), lo
   f1 <- update_params(f1, data$betahat, data$se, rep(1, length(data$betahat)))
 
   # initialize posterior assignment
-  f0_loglik <- convolved_logpdf(f0, data$betahat, data$se)
-  f1_loglik <- convolved_logpdf(f1, data$betahat, data$se)
+  f0_loglik <- convolved_logpdf( f0,
+                                 data$betahat,
+                                 data$se)
+  f1_loglik <- convolved_logpdf( f1,
+                                 data$betahat,
+                                 data$se)
   logits <- f1_loglik - f0_loglik
 
   # initialize logreg

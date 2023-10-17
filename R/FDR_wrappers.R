@@ -119,11 +119,15 @@ get_lfdr_beta <- function(fit){
 cal_qvalue <- function(lfdr)
 {
 
-  torder <- order(lfdr)
-  qvalue <- sapply( 1:length(lfdr), function(k )
-                                    mean(lfdr[which(torder <= torder[k] )])
-                    )
-  return(qvalue)
+  qval <- c()
+  for (i in 1:length(lfdr)){
+    tt <-  mean(lfdr[which( lfdr<=lfdr[i])])
+    qval <- c(qval,tt)
+  }
+
+
+
+  return(qval)
 
 }
 

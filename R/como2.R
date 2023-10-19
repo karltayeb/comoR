@@ -76,7 +76,7 @@ data_initialize_como2 <- function(data,
                                   f1_params = list(),
                                   logreg='constant',
                                   logreg_params = list(),
-                                  penalty=0.1){
+                                  penalty=0.2){
 
   # initialize component distribution
   f0 <- point_component(mu = 0)

@@ -12,7 +12,7 @@ prep_data_como2 <- function(betahat, se, X, Z){
 compute_post_assignment <- function(fit, data) {
   # ln p(z=1)/p(z=0)
   prior_log_odds <- compute_prior_log_odds(fit$logreg, data)
-  f0_loglik <- convolved_logpdf(fit$f0, data$betahat, data$se)
+  f0_loglik <- convolved_logpdf(fit$f0, data$betahat, data$se)+ fit$penalty
   f1_loglik <- convolved_logpdf(fit$f1, data$betahat, data$se)
   logits <- (f1_loglik - f0_loglik) + prior_log_odds
   post_assignment <- sigmoid(logits)
@@ -71,7 +71,12 @@ update_model.como2 <- function(fit, data, estimate_f1=FALSE, track_elbo=T){
 }
 
 #' @export
-data_initialize_como2 <- function(data, f1_dist='normal', f1_params = list(), logreg='constant', logreg_params = list()){
+data_initialize_como2 <- function(data,
+                                  f1_dist='normal',
+                                  f1_params = list(),
+                                  logreg='constant',
+                                  logreg_params = list(),
+                                  penalty=1){
 
   # initialize component distribution
   f0 <- point_component(mu = 0)
@@ -112,7 +117,8 @@ data_initialize_como2 <- function(data, f1_dist='normal', f1_params = list(), lo
     f0_loglik = f0_loglik,
     f1 = f1,
     f1_loglik = f1_loglik,
-    elbo = -Inf
+    elbo = -Inf,
+    penalty =penalty
   )
   class(fit) <- 'como2'
   return(fit)

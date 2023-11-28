@@ -11,6 +11,13 @@
 #' corresponds to fitting the same model as for pvalue argument with upper=TRUE;  (mixture of betas
 #' which  contains distribution with decreasing density or distribution with increasing density)
 #' @export
+#'
+#'
+#'
+#'
+#'
+#'
+#'
 cFDR <- function( betahat,
                   se,
                   #  pvalue,
@@ -39,9 +46,7 @@ cFDR <- function( betahat,
     if( !(missing(betahat))&missing(se)){
     stop("Please provide standard error when providing regression estimate or use zscore input")
    }
-# if(   missing(betahat)&missing(pvalue)&missing(zscore)){
-      # stop("Please provide one of the following entry:betahat, pvalue or zscore")
-      # }
+
 
 
   N <- length(betahat)
@@ -49,27 +54,10 @@ cFDR <- function( betahat,
   Z <- matrix(rep(1, N), nrow=N)
   }
 
-  #if( !missing(betahat)& !missing( se)){
-  #   model <- "normal"
-
 
     data <- prep_data_como2(betahat=betahat,
                             se=se, X=X,
                             Z =Z )
-    #fit como model
-    #}
-    # if(!missing(pvalue)){
-    #  model <- "beta"
-    #  data <- set_data_como(p = pvalue,
-    #                          X = X)
-# }
-
-#if(!missing(zscore)){
-#  model <- "beta"
-    #  data <- set_data_como(zscore = zscore, #TODO using U value as in the ZAP paper
-    #                            X = X)
-#   upper =TRUE
-#}
 
   if(verbose){
     print( "Fitting como model")

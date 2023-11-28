@@ -9,7 +9,8 @@ cFDR(
   se,
   X,
   Z,
-  param_como2 = list(logreg = "logistic_ibss", logreg_params = list(L = 5)),
+  param_como2 = list(logreg = "logistic_ibss", f1_dist = "ash", logreg_params = list(L =
+    5)),
   coverage = 0.95,
   maxiter = 100,
   tol = 0.001,

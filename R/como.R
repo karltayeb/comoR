@@ -86,6 +86,16 @@ initialize_como <- function(scales,
 }
 
 #' Use data to autoselect scales
+#' @title data_initialize_como
+#'  @param data description
+#'  @param scales description
+#'  @param mu0 description
+#'  @param var0 description
+#'  @param nullweight description
+#'
+#'  @param mnreg_type description
+#'  @param param_nnet description
+#' @export
 data_initialize_como <- function(data, max_class,
                                  scales=NULL,
                                  mu0=0,

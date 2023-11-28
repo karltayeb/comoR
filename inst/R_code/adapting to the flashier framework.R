@@ -2,30 +2,30 @@ rm(list=ls())
 library(comoR)
 library(nnet)
 library(comoR)
-simdata <- sim_cfactor()
+simdata <- comoR:::sim_cfactor()
  devtools::load_all(".")
 
 X <- simdata$X_l
 Y <- simdata$X_f
 
 
-cebnm_L <- function( x,s ){
+cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
 
   Z <- matrix( 1, nrow=length(x), ncol=1)
 
   param_como  = list(max_class=5,mnreg_type="mult_reg")
   param_nnet  =list( size=1, decay=1,MaxNWts = 10000)
 
-  data <- prep_data_como2(betahat=x,
+  data <- comoR:::prep_data_como2 (betahat=x,
                           se=s, X=X,
                           Z =Z )
   fit <-  rlang::exec( "data_initialize_como", !!! param_como ,
                        data= data,
                        param_nnet=  param_nnet) # initialize the model from the data
-  fit  <- fit_model(  fit,  data, max_iter = 5 )
+  fit  <- comoR:::fit.como (  fit,  data, max_iter = 5 )
 
 
-  est    <- post_mean_sd  (fit,data)
+  est    <- comoR:::post_mean_sd  (fit,data)
 
 
   g <- ashr::normalmix(rep(1/length(fit$f_list),length(fit$f_list)),
@@ -42,31 +42,33 @@ cebnm_L <- function( x,s ){
                                       sd= est$sd
                ) ,
                fitted_g =  g,
-               log_likelihood=sum(compute_data_loglikelihood(fit, data) * (fit$post_assignment))
+               log_likelihood=sum( comoR:::compute_data_loglikelihood(fit, data) * (fit$post_assignment))
 
   )
 
   return( out)
 
 }
-cebnm_F <- function( x,s ){
+cebnm_F <- function( x,s,g_init,fix_g=TRUE, output){
 
 
   Z <- matrix( 1, nrow=length(x), ncol=1)
+  Z <- matrix( 1, nrow=length(x), ncol=1)
+
   param_como  = list(max_class=5,mnreg_type="mult_reg")
   param_nnet  =list( size=1, decay=1,MaxNWts = 10000)
 
-
-  data <- prep_data_como2(betahat=x,
-                          se=s, X=X,
-                          Z =Z )
+  data <- comoR:::prep_data_como2 (betahat=x,
+                                   se=s, X=Y,
+                                   Z =Z )
   fit <-  rlang::exec( "data_initialize_como", !!! param_como ,
                        data= data,
                        param_nnet=  param_nnet) # initialize the model from the data
-  fit  <- fit_model(  fit,  data, max_iter = 5 )
+  fit  <- comoR:::fit.como (  fit,  data, max_iter = 5 )
 
 
-  est    <- post_mean_sd  (fit,data)
+  est    <- comoR:::post_mean_sd  (fit,data)
+
 
   g <- ashr::normalmix(rep(1/length(fit$f_list),length(fit$f_list)),
                        rep( 0, length(fit$f_list)),
@@ -74,16 +76,17 @@ cebnm_F <- function( x,s ){
                                           function(k) {sqrt(fit$f_list [[k]]$var) } )
                        )
   )
+
+
   out <- list( data= data.frame(x=data$betahat,
                                 s=data$se),
                posterior = data.frame(mean= est$mean,
                                       sd= est$sd
-                                      ) ,
+               ) ,
                fitted_g =  g,
-               log_likelihood=sum(compute_data_loglikelihood(fit, data) * (fit$post_assignment))
+               log_likelihood=sum( comoR:::compute_data_loglikelihood(fit, data) * (fit$post_assignment))
 
-          )
-
+  )
   return( out)
 
 }

@@ -311,7 +311,7 @@ c_ash_sim <- function( N=1000,
 
     for ( i in 1:N){
       mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
-      betatrue <- c( betatrue, mix[i] *rnorm(1,sd=4))
+      betatrue <- c( betatrue, mix[i] *samp_fun())
       betahat <- c( betahat ,   betatrue[i]+rnorm(1,sd=noise_level ) )
     }
     if(se_type=="constant"){

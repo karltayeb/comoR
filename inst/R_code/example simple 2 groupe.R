@@ -1,12 +1,42 @@
-rm(list=ls())
-library(comoR)
-library(nnet)
-library(comoR)
-simdata <- comoR:::sim_cfactor( noise_level= 5)
-devtools::load_all(".")
+x <-runif(1000)
+y <-runif(1000)
+X = cbind(x,y)
+plot (x,y)
 
-X <- simdata$X_l
-Y <- simdata$X_f
+set.seed(1)
+f <- matrix(NA, nrow = 2, ncol =200)
+for ( i in 1:ncol (f)){
+
+   t1<- sample (c(0,1), size=1)
+   t2<- sample (c(0,1), size=1)
+
+   f[1,i] <- t1*rnorm(n=1)
+   f[2,i] <- t2*rnorm(n=1)
+
+}
+L <- matrix(NA, ncol=2, nrow=length(x))
+
+for (i in 1:length(x)){
+
+  if ( (x[i] <.5 & y[i] <.5 )|(x[i] >.5 & y[i] >.5 )){
+    L[i,] <- c(1,0)
+  }else{
+    L[i,] <- c(0,1)
+  }
+
+
+}
+
+
+plot ( x* c( L[,1]), y* c( L[,1]))
+
+Z = L%*%f + matrix(rnorm(nrow(L)* ncol(f)), nrow = nrow(L))
+
+
+library(flashier)
+fit_default <- flash(Z, greedy_Kmax = 5)
+
+Y = matrix(rnorm(ncol(f)*2), ncol=2)
 
 cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
 
@@ -16,7 +46,7 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
   Z <- matrix( 1, nrow=length(x), ncol=1)
 
   param_como = list(max_class=5,mnreg_type="mult_reg")
-  param_nnet =list( size=3, decay=1,MaxNWts = 10000)
+  param_nnet =list( size=4, decay=1,MaxNWts = 10000)
 
   data <- comoR:::prep_data_como2 (betahat=x,
                                    se=s, X=X,
@@ -57,7 +87,7 @@ cebnm_F <- function( x,s,g_init,fix_g=TRUE, output){
   Z <- matrix( 1, nrow=length(x), ncol=1)
 
   param_como = list(max_class=5,mnreg_type="mult_reg")
-  param_nnet = list( size=3, decay=1,MaxNWts = 10000)
+  param_nnet =list( size=3, decay=1,MaxNWts = 10000)
 
   data <- comoR:::prep_data_como2 (betahat=x,
                                    se=s, X=Y,
@@ -90,17 +120,18 @@ cebnm_F <- function( x,s,g_init,fix_g=TRUE, output){
 }
 
 library(flashier)
-fit_custom <- flash_init(simdata$Y_obs, var_type = 2) %>%
+fit_custom <- flash_init(Z, var_type = 2) %>%
   flash_set_verbose(0) %>%
   flash_greedy(
     Kmax = 2,
     ebnm_fn = c(cebnm_L, cebnm_F)
   )
-fit_default <- flash(simdata$Y_obs, greedy_Kmax = 5)
 
-plot(fitted(fit_default ) ,simdata$Y_true)
+plot(fitted(fit_default ) ,L%*%f )
+points(fitted(fit_custom ) ,L%*%f  , col="lightgreen")
+cor (c(fitted(fit_default )) ,c(L%*%f))
+cor (c(fitted(fit_custom )) ,c(L%*%f))
 
-points( fitted(fit_custom),simdata$Y_true, col="green")
-cor(c(fitted(fit_default ) ),c(simdata$Y_true))
 
-cor(c(fitted(fit_custom) ),c(simdata$Y_true))
+
+plot(fit_default$L_pm,x)

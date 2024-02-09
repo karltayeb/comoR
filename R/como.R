@@ -68,6 +68,15 @@ initialize_como <- function(scales,
                                param_nnet = param_nnet)
 
   }
+  if( mnreg_type== "keras"){
+
+    mnreg <- initialize_mnreg (mnreg_type = mnreg_type,
+                               K          = K,
+                               n          = n,
+                               p          = p,
+                               param_nnet = param_nnet)
+
+  }
 
   #mn_reg <- logisticsusie:::initialize_sbmn_susie(K, n, p, p2, L, mu0, var0)
 

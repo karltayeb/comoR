@@ -105,12 +105,32 @@ update_prior.mult_reg<- function(mnreg, resps, data   ){
 
   return(mnreg)
 }
-compute_log_prior_assignment.mult_reg <- function(mnreg, data){
+
+## Keras object
+
+
+
+compute_log_prior_assignment.keras <- function(mnreg, data){
 
   X <- data$X
-  fitted_pi <-predict(mnreg$coef, X)# in case of multinomial cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
+  fitted_pi <-predict( mnreg$model, X)# in case of multinomial cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
   logpi <- log( fitted_pi)
   return(logpi)
+}
+
+
+update_prior.keras<- function(mnreg, resps, data   ){
+  X  = as.matrix(data$X)
+  tt <-rlang::exec( "nnet",
+                    !!!mnreg$param_nnet ,
+                    y = resps,
+                    x = X,
+                    softmax=TRUE  ,
+                    trace=FALSE )
+  mnreg$logpi <- log(tt$fitted.values)
+  mnreg$coef  <- tt
+
+  return(mnreg)
 }
 
 # SuSiE prior------------

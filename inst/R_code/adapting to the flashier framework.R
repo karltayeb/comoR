@@ -124,3 +124,5 @@ res_cEBMF <- cEBMF  (Y=simdata$Y_obs,
         maxit_como =5 ,
         param_nnet= list(size=3, decay=1.2),
         maxit=5)
+
+

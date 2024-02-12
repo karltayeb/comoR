@@ -73,7 +73,7 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
   fit <- comoR:::fit.como (  fit, data, max_iter = 3 )
 
 
-
+  est <- comoR:::post_mean_sd (fit,data)
 
 
 
@@ -150,11 +150,16 @@ cor (c(fitted(fit_default )) ,c(L%*%f))
 cor (c(fitted(fit_custom )) ,c(L%*%f))
 
 
-plot(fitted(fit_default ) ,L%*%f )
-points(fitted(fit_custom ) ,L%*%f  , col="lightgreen")
+plot(fitted(fit_default ) ,L%*%f , xlab = "fitted value")
+points(fitted(fit_custom ) ,L%*%f  , col="lightgreen")+
+  legend
 cor (c(fitted(fit_default )) ,c(L%*%f))
 cor (c(fitted(fit_custom )) ,c(L%*%f))
 
 
 
-plot(fit_default$L_pm,x)
+rmse = function(x,y){
+  sqrt(mean (x-y)^2)
+}
+rmse(c(fitted(fit_default )) ,c(L%*%f))
+rmse(c(fitted(fit_custom )) ,c(L%*%f))

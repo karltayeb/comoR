@@ -151,8 +151,12 @@ cor (c(fitted(fit_custom )) ,c(L%*%f))
 
 
 plot(fitted(fit_default ) ,L%*%f , xlab = "fitted value")
-points(fitted(fit_custom ) ,L%*%f  , col="lightgreen")+
-  legend
+points(fitted(fit_custom ) ,L%*%f  , col="lightgreen")
+  legend( x=1, y=-1,
+          legend= c("EBNM", "cEBNM"),
+          col= c("black","lightgreen" ),
+          pch=c (21,21)
+          )
 cor (c(fitted(fit_default )) ,c(L%*%f))
 cor (c(fitted(fit_custom )) ,c(L%*%f))
 

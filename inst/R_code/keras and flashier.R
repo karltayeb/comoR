@@ -34,6 +34,7 @@ Z = L%*%f + matrix(rnorm(nrow(L)* ncol(f)), nrow = nrow(L))
 
 
 library(flashier)
+library(keras)
 fit_default <- flash(Z, greedy_Kmax = 5)
 
 Y = matrix(rnorm(ncol(f)*2), ncol=2)
@@ -104,15 +105,14 @@ cebnm_F <- function( x,s,g_init,fix_g=TRUE, output){
   Z <- matrix( 1, nrow=length(x), ncol=1)
   Z <- matrix( 1, nrow=length(x), ncol=1)
 
-  param_como = list(max_class=5,mnreg_type="mult_reg")
-  param_nnet =list( size=3, decay=1,MaxNWts = 10000)
+  param_como = list(max_class=10,mnreg_type='constant')
+  param_nnet =list( )
 
   data <- comoR:::prep_data_como2 (betahat=x,
                                    se=s, X=Y,
                                    Z =Z )
   fit <- rlang::exec( "data_initialize_como", !!! param_como ,
-                      data= data,
-                      param_nnet= param_nnet) # initialize the model from the data
+                      data= data ) # initialize the model from the data
   fit <- comoR:::fit.como ( fit, data, max_iter = 5 )
 
   est <- comoR:::post_mean_sd (fit,data)
@@ -142,7 +142,7 @@ fit_custom <- flash_init(Z, var_type = 2) %>%
   flash_set_verbose(0) %>%
   flash_greedy(
     Kmax = 2,
-    ebnm_fn = c(cebnm_L, cebnm_F),maxiter = 2
+    ebnm_fn = c(cebnm_L, ebnm_point_laplace),maxiter = 2
   )
 
 

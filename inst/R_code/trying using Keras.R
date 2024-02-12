@@ -23,8 +23,8 @@ plot (y,x)
 s= rep(1,length(x))
 Z <- matrix( 1, nrow=length(x), ncol=1)
 
-param_como = list(max_class=10,mnreg_type="mult_reg")
-param_nnet =list( size=3, decay=1,MaxNWts = 10000)
+param_como = list(max_class=10,mnreg_type="constant")
+param_nnet =list( )
 
 data <- comoR:::prep_data_como2 (betahat=x,
                                  se=s, X=X,
@@ -36,6 +36,9 @@ fit_como  <- rlang::exec( "data_initialize_como", !!! param_como ,
 
 fit_como $data_loglik <- compute_data_loglikelihood(fit_como , data)
 fit_como $data_loglik
+fit <- comoR:::fit.como (fit_como, data, max_iter = 5 )
+
+est <- comoR:::post_mean_sd (fit_como,data)
 
 
 yb = y

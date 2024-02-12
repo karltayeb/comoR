@@ -49,7 +49,7 @@ compute_log_prior_assignment.constant_mnreg <- function(mnreg, data){
 #'     of each observation to each class
 #' @param data a list at least containing covariates `X`
 #' @export
-update_prior.constant_mnreg <- function(mnreg, resps, data){
+update_prior.constant_mnreg <- function(mnreg, resps,loglik, data){
   new_log_pis <- log(colMeans(resps))
   mnreg$logpi <- new_log_pis
   return(mnreg)
@@ -92,7 +92,7 @@ initialize_mnreg  <- function(mnreg_type,K, n,  p,param_nnet=list( size=1, decay
 
   return(mnreg)
 }
-update_prior.mult_reg<- function(mnreg, resps, data   ){
+update_prior.mult_reg<- function(mnreg, resps, loglik, data   ){
   X  = as.matrix(data$X)
   tt <-rlang::exec( "nnet",
                     !!!mnreg$param_nnet ,
@@ -106,35 +106,96 @@ update_prior.mult_reg<- function(mnreg, resps, data   ){
   return(mnreg)
 }
 
-## Keras object
 
+#' @rdname compute_log_prior_assignment
+#'
+#' @method compute_log_prior_assignment
+#'
+#' @export compute_log_prior_assignment.mult_reg
+#' @export
+#' @keywords internal
 
-
-compute_log_prior_assignment.keras <- function(mnreg, data){
-
-  X <- data$X
-  fitted_pi <-predict( mnreg$model, X)# in case of multinomial cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
-  logpi <- log( fitted_pi)
+compute_log_prior_assignment.mult_reg <- function(mnreg, data){
+  # in case of multinomial cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
+  logpi <- mnreg$logpi
   return(logpi)
 }
 
+## Keras object
+initialize_nnet_keras <-function (mnreg_type,K ,n , param_nnet ){
+  logpi <-  matrix (1/K, nrow=n, ncol = K)
+  mnreg <- list(logpi=logpi,
+                K=K,
+                param_nnet= param_nnet)
+  class(mnreg)="keras_obj"
+  return(mnreg)
 
-update_prior.keras<- function(mnreg, resps, data   ){
+}
+#' @rdname compute_log_prior_assignment
+#'
+#' @method compute_log_prior_assignment
+#'
+#' @export compute_log_prior_assignment.keras_obj
+#' @export
+#' @keywords internal
+
+compute_log_prior_assignment.keras_obj <- function(mnreg, data){
+ # in case of multinomial cbind( 1,exp(tt))/(1+apply(exp(tt),1,sum))
+  logpi <- mnreg$logpi
+  return(logpi)
+}
+
+#' @rdname update_prior
+#'
+#' @method update_prior
+#'
+#' @export update_prior.keras_obj
+#' @importFrom keras clone_model
+#' @export
+#' @keywords internal
+update_prior.keras_obj<- function(mnreg, resps,loglik, data   ){
   X  = as.matrix(data$X)
-  tt <-rlang::exec( "nnet",
-                    !!!mnreg$param_nnet ,
-                    y = resps,
-                    x = X,
-                    softmax=TRUE  ,
-                    trace=FALSE )
-  mnreg$logpi <- log(tt$fitted.values)
-  mnreg$coef  <- tt
+
+  model1 <- keras::clone_model(mnreg$param_nnet )
+
+  model1 <-  model1 %>% compile(
+    loss = custom_loss,
+    optimizer = 'adam',
+    metrics = c('accuracy')
+  )
+
+  x_train=X
+  y_train= loglik
+  candidate_batch_size =divisors(nrow(y_train))
+
+  idx = which.min(abs( divisors(nrow(y_train))-100))
+  custom_batch_size <- candidate_batch_size[idx]
+
+  history <-model1 %>% fit(
+    x_train, y_train,
+    epochs = 20,
+    batch_size = custom_batch_size
+  )
+
+
+
+  mnreg$logpi <- log(predict(model1, x_train))
+  mnreg$model <-model1
 
   return(mnreg)
 }
 
-# SuSiE prior------------
 
+custom_loss <- function(y_true, y_pred) {
+  tt <- 0
+  for (i in 1:nrow(y_true)) {
+    tt <- tt + log(sum(exp(y_true[i,]) * y_pred[i,]))
+  }
+  loss <- -tt
+  return(loss)
+}
+
+# SuSiE prior------------
 
 
 

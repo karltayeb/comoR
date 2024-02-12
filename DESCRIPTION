@@ -7,8 +7,9 @@ Description: Implements logistic, multinomial and categorical SuSiE as well as s
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Suggests: 
+    keras (>= 2.13.0),
     testthat (>= 3.0.0),
     softImpute (>= 1.4.1)
 Config/testthat/edition: 3

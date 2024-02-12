@@ -70,10 +70,9 @@ initialize_como <- function(scales,
   }
   if( mnreg_type== "keras"){
 
-    mnreg <- initialize_mnreg (mnreg_type = mnreg_type,
+    mnreg <- initialize_nnet_keras (mnreg_type = mnreg_type,
                                K          = K,
                                n          = n,
-                               p          = p,
                                param_nnet = param_nnet)
 
   }
@@ -154,7 +153,10 @@ update_model.como <- function(fit, data, update_assignment = T, update_logreg=T,
   }
 
   if (update_logreg) {
-    fit$mnreg <- update_prior(fit$mnreg, resps=fit$post_assignment, data=data)
+    fit$mnreg <- update_prior(fit$mnreg,
+                              resps=fit$post_assignment,
+                              loglik=  fit$data_loglik,
+                              data=data)
   }
 
   if (track_elbo){

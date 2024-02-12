@@ -2,10 +2,14 @@
 % Please edit documentation in R/multinomial_regression.R
 \name{update_prior}
 \alias{update_prior}
+\alias{update_prior.keras_obj}
 \title{Update the multinomial regression}
 \usage{
 update_prior(x, ...)
+
+\method{update_prior}{keras_obj}(mnreg, resps, loglik, data)
 }
 \description{
 Update the multinomial regression
 }
+\keyword{internal}

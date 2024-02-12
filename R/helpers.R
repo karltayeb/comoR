@@ -289,3 +289,14 @@ cal_purity_cFDR<- function(l_cs,X){
   }
   return( tt )
 }
+
+
+
+#from https://stackoverflow.com/questions/19465720/writing-a-function-to-calculate-divisors-in-r
+
+divisors <- function(x){
+  #  Vector of numberes to test against
+  y <- seq_len(x)
+  #  Modulo division. If remainder is 0 that number is a divisor of x so return it
+  y[ x%%y == 0 ]
+}

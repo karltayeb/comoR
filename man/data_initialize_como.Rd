@@ -2,7 +2,15 @@
 % Please edit documentation in R/como.R
 \name{data_initialize_como}
 \alias{data_initialize_como}
-\title{Use data to autoselect scales}
+\title{data_initialize_como
+@param data description
+@param scales description
+@param mu0 description
+@param var0 description
+@param nullweight description
+
+@param mnreg_type description
+@param param_nnet description}
 \usage{
 data_initialize_como(
   data,

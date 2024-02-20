@@ -2,9 +2,14 @@ x <-runif(1000)
 y <-runif(1000)
 X = cbind(x,y)
 plot (x,y)
+library(flashier)
 
-set.seed(1)
-f <- matrix(NA, nrow = 2, ncol =200)
+library(keras)
+
+library(tensorflow)
+
+set.seed(2)#problem fro set.seed(1)
+f <- matrix(NA, nrow = 3, ncol =200)
 for ( i in 1:ncol (f)){
 
   t1<- sample (c(0,1), size=1)
@@ -13,15 +18,21 @@ for ( i in 1:ncol (f)){
   f[1,i] <- t1*rnorm(n=1)
   f[2,i] <- t2*rnorm(n=1)
 
+  f[3,i] <- t2*rnorm(n=1)
+
 }
-L <- matrix(NA, ncol=2, nrow=length(x))
+L <- matrix(NA, ncol=3, nrow=length(x))
 
 for (i in 1:length(x)){
 
-  if ( (x[i] <.5 & y[i] <.5 )|(x[i] >.5 & y[i] >.5 )){
-    L[i,] <- c(1,0)
+  if ( (x[i] <.33 & y[i] <.33 )|(x[i] >.33 & y[i] >.33 &  x[i] <.66 & y[i] <.66) | (x[i] >.66 & y[i] >.66 )){
+    L[i,] <- c(1,0,0)
   }else{
-    L[i,] <- c(0,1)
+    if ( (x[i] <.33 & y[i] >.66 )|(x[i] >.33 & y[i] <.33 &  x[i] <.66  ) | (x[i] >.66 & y[i] >.33  & y[i] <.66)){
+      L[i,] <- c(0,1,0)
+    }else{
+      L[i,] <- c(0,0,1)
+    }
   }
 
 
@@ -29,6 +40,10 @@ for (i in 1:length(x)){
 
 
 plot ( x* c( L[,1]), y* c( L[,1]))
+
+plot ( x* c( L[,2]), y* c( L[,2]))
+plot ( x* c( L[,3]), y* c( L[,3]))
+
 
 Z = L%*%f + matrix(rnorm(nrow(L)* ncol(f), sd=1.5), nrow = nrow(L))
 
@@ -59,8 +74,10 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
     layer_dense(units = 64,
                 activation = 'relu',
                 input_shape = c(ncol(X))) %>%
-    layer_dense(units = 64,
-                activation = 'relu' ) %>%
+      layer_dense(units = 64,
+                  activation = 'relu' ) %>%
+     layer_dense(units = 64,
+                  activation = 'relu' ) %>%
     layer_dense(units = 64,
                 activation = 'relu' ) %>%
     layer_dense(units = num_classes,
@@ -68,8 +85,8 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
 
   # run comoR
   fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
-                            data= data,
-                            param_nnet= param_nnet) # initialize the model from the data
+                       data= data,
+                       param_nnet= param_nnet) # initialize the model from the data
   fit <- comoR:::fit.como (  fit, data, max_iter = 3 )
 
 
@@ -141,7 +158,7 @@ library(flashier)
 fit_custom <- flash_init(Z, var_type = 2) %>%
   flash_set_verbose(0) %>%
   flash_greedy(
-    Kmax = 2,
+    Kmax = 3,
     ebnm_fn = c(cebnm_L, ebnm_ash)
   )
 
@@ -152,13 +169,11 @@ cor (c(fitted(fit_custom )) ,c(L%*%f))
 
 plot(fitted(fit_default ) ,L%*%f , xlab = "fitted value")
 points(fitted(fit_custom ) ,L%*%f  , col="lightgreen")
-  legend( x=1, y=-1,
-          legend= c("EBNM", "cEBNM"),
-          col= c("black","lightgreen" ),
-          pch=c (21,21)
-          )
-cor (c(fitted(fit_default )) ,c(L%*%f))
-cor (c(fitted(fit_custom )) ,c(L%*%f))
+legend( x=1, y=-1,
+        legend= c("EBNM", "cEBNM"),
+        col= c("black","lightgreen" ),
+        pch=c (21,21)
+)
 
 
 
@@ -169,22 +184,36 @@ rmse(c(fitted(fit_default )) ,c(L%*%f))
 rmse(c(fitted(fit_custom )) ,c(L%*%f))
 library(ggplot2)
 df <- data.frame(x=x,y=y, L= fit_custom$L_pm[,1])
-ggplot(df, aes ( x,y, col = abs(L)))+geom_point()
-df <- data.frame(x=x,y=y, L= fit_default$L_pm[,1])
-ggplot(df, aes ( x,y, col = abs(L)))+geom_point()
+ggplot(df, aes ( x,y, col = abs(L)))+
+  geom_point(size=2)+
+  scale_color_continuous(type = "viridis")+
+  geom_hline(yintercept = 0.33)+
+  geom_hline(yintercept = 0.66)+
+  geom_vline(xintercept = 0.66)+
+  geom_vline(xintercept = 0.33)
+df <- data.frame(x=x,y=y, L= fit_default$L_pm[,2])
+ggplot(df, aes ( x,y, col = abs(L)))+
+  geom_point(size=2)+
+  scale_color_continuous(type = "viridis")+
+  geom_hline(yintercept = 0.33)+
+  geom_hline(yintercept = 0.66)+
+  geom_vline(xintercept = 0.66)+
+  geom_vline(xintercept = 0.33)
+
+df <- data.frame(x=x,y=y, L= fit_default$L_pm[,3])
+ggplot(df, aes ( x,y, col = abs(L)))+
+  geom_point(size=2)+
+  scale_color_continuous(type = "viridis")+
+  geom_hline(yintercept = 0.33)+
+  geom_hline(yintercept = 0.66)+
+  geom_vline(xintercept = 0.66)+
+  geom_vline(xintercept = 0.33)
 
 plot (fit_custom$L_pm[,1], fit_default$L_pm[,1])
+abline(a=0,b=1)
 
 plot (fit_custom$L_pm[,2], fit_default$L_pm[,2])
 df <- data.frame(est=c(fit_custom$L_pm[,1], fit_default$L_pm[,1]),
-                 true_l  = c( L[,2],L[,2]), method = rep(c("cEBNM", "EBNM"), each = nrow(L)))
-
-
-ggplot(df, aes ( true_l,est , col = (method)))+geom_boxplot()+
-  facet_wrap(.~true_l)
-
-
-df <- data.frame(est=c(fit_custom$L_pm[,2], fit_default$L_pm[,2]),
                  true_l  = c( L[,1],L[,1]), method = rep(c("cEBNM", "EBNM"), each = nrow(L)))
 
 
@@ -192,15 +221,19 @@ ggplot(df, aes ( true_l,est , col = (method)))+geom_boxplot()+
   facet_wrap(.~true_l)
 
 
-df <- data.frame(est=c(fit_custom$F_pm[,2], fit_default$F_pm[,2]),
-                 true_f  = c( f[1,],f[1,]), method = rep(c("cEBNM", "EBNM"), each = nrow(L)))
+df <- data.frame(est=c(fit_custom$L_pm[,2], fit_default$L_pm[,2]),
+                 true_l  = c( L[,2],L[,2]), method = rep(c("cEBNM", "EBNM"), each = nrow(L)))
 
 
-ggplot(df, aes ( true_f,est , col = (method)))+geom_point()
+ggplot(df, aes ( true_l,est , col = (method)))+geom_boxplot()+
+  facet_wrap(.~true_l)
 
-df <- data.frame(est=c(fit_custom$F_pm[,2], fit_default$F_pm[,2]),
-                 true_f  = c( f[1,],f[1,]), method = rep(c("cEBNM", "EBNM"), each = nrow(L)))
+df <- data.frame(est=c(fit_custom$L_pm[,3], fit_default$L_pm[,3]),
+                 true_l  = c( L[,3],L[,3]), method = rep(c("cEBNM", "EBNM"), each = nrow(L)))
+ggplot(df, aes ( true_l,est , col = (method)))+geom_boxplot()+
+  facet_wrap(.~true_l)
 
+plot(fit_custom$L_pm[,1], fit_default$L_pm[,1])
+plot(fit_custom$L_pm[,2], fit_default$L_pm[,2])
 
-ggplot(df, aes ( true_f,est , col = (method)))+geom_point()
-
+plot(fit_custom$L_pm[,3], fit_default$L_pm[,3])

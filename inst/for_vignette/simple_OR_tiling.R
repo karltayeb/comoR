@@ -1,3 +1,8 @@
+rm(list=ls())
+library(keras)
+library(comoR)
+library(nnet)
+library(tensorflow)
 x <-runif(1000)
 y <-runif(1000)
 X = cbind(x,y)
@@ -68,8 +73,8 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
 
   # run comoR
   fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
-                            data= data,
-                            param_nnet= param_nnet) # initialize the model from the data
+                       data= data,
+                       param_nnet= param_nnet) # initialize the model from the data
   fit <- comoR:::fit.como (  fit, data, max_iter = 3 )
 
 
@@ -152,11 +157,11 @@ cor (c(fitted(fit_custom )) ,c(L%*%f))
 
 plot(fitted(fit_default ) ,L%*%f , xlab = "fitted value")
 points(fitted(fit_custom ) ,L%*%f  , col="lightgreen")
-  legend( x=1, y=-1,
-          legend= c("EBNM", "cEBNM"),
-          col= c("black","lightgreen" ),
-          pch=c (21,21)
-          )
+legend( x=1, y=-1,
+        legend= c("EBNM", "cEBNM"),
+        col= c("black","lightgreen" ),
+        pch=c (21,21)
+)
 cor (c(fitted(fit_default )) ,c(L%*%f))
 cor (c(fitted(fit_custom )) ,c(L%*%f))
 

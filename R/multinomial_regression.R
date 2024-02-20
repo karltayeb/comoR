@@ -187,13 +187,18 @@ update_prior.keras_obj<- function(mnreg, resps,loglik, data   ){
 
 
 custom_loss <- function(y_true, y_pred) {
-  tt <- 0
-  for (i in 1:nrow(y_true)) {
-    tt <- tt + log(sum(exp(y_true[i,]) * y_pred[i,]))
-  }
-  loss <- -tt
-  return(loss)
+  case_wise_tt <- tf$vectorized_map(
+    elems = c(y_true, y_pred),
+    fn = function(x) {
+      c(y_true1, y_pred1) %<-% x
+      log(sum(exp(y_true1) * y_pred1))
+    }
+  )
+  tt <- sum(case_wise_tt)
+  mse <- -tt
+  return(mse)
 }
+
 
 # SuSiE prior------------
 

@@ -62,6 +62,24 @@ custom_loss <- function(y_true, y_pred) {
   return(mse)
 }
 
+
+
+custom_loss <- function(y_true, y_pred) {
+  case_wise_tt <- tf$vectorized_map(
+    elems = c(y_true, y_pred),
+    fn = function(x) {
+      c(y_true1, y_pred1) %<-% x
+      log(sum(exp(y_true1) * y_pred1))
+    }
+  )
+  tt <- sum(case_wise_tt)
+  mse <- -tt
+  return(mse)
+}
+
+
+
+
 model1 <- clone_model(model )
 
 model2 <- clone_model(model )

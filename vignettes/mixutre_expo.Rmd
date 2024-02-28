@@ -1,0 +1,39 @@
+---
+title: "mixture expo"
+author: "William R.P. Denault"
+date: "2024-02-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##  Mixture expo
+Goal make a ebnm function for mixture of exponential using some of the script from ebnm
+```{r cars}
+set.seed(1)
+n=1000
+s <- rnorm(n, 1, 0.1)
+x <- c(rexp(n / 2, rate = 0.1), rep(0, n / 2)) + rnorm(n, sd = s)
+
+true_pi0 <- 0.5
+scale <- 1:10
+true_mode <- 0
+
+true_g <- gammamix(pi = c(true_pi0,   rep(0.5/10,10)),
+                   shape = c(1, rep(1,10)),
+                   scale = c(0,  1:10),
+                   shift = c(0, rep(0,10)))
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

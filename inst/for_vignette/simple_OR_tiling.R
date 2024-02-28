@@ -75,7 +75,7 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
   fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
                        data= data,
                        param_nnet= param_nnet) # initialize the model from the data
-  fit <- comoR:::fit.como (  fit, data, max_iter = 3 )
+  fit <- comoR:::fit.como (  fit, data, max_iter = 6 )
 
 
   est <- comoR:::post_mean_sd (fit,data)

@@ -8,7 +8,7 @@ library(keras)
 
 library(tensorflow)
 
-set.seed(2)#problem fro set.seed(1)
+set.seed(3)#problem fro set.seed(1)
 f <- matrix(NA, nrow = 3, ncol =200)
 for ( i in 1:ncol (f)){
 
@@ -87,7 +87,7 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
   fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
                        data= data,
                        param_nnet= param_nnet) # initialize the model from the data
-  fit <- comoR:::fit.como (  fit, data, max_iter = 3 )
+  fit <- comoR:::fit.como (  fit, data, max_iter = 10 )
 
 
   est <- comoR:::post_mean_sd (fit,data)

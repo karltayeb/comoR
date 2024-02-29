@@ -12,28 +12,121 @@ knitr::opts_chunk$set(echo = TRUE)
 ##  Mixture expo
 Goal make a ebnm function for mixture of exponential using some of the script from ebnm
 ```{r cars}
+library(ebnm)
 set.seed(1)
 n=1000
 s <- rnorm(n, 1, 0.1)
-x <- c(rexp(n / 2, rate = 0.1), rep(0, n / 2)) + rnorm(n, sd = s)
+x_true <-c(rexp(n / 2, rate = 0.1), rep(0, n / 2)) 
+x <- x_true + rnorm(n, sd = s)
 
 true_pi0 <- 0.5
 scale <- 1:10
 true_mode <- 0
 
-true_g <- gammamix(pi = c(true_pi0,   rep(0.5/10,10)),
+ g <- gammamix(pi = c(true_pi0,   rep(0.5/10,10)),
                    shape = c(1, rep(1,10)),
                    scale = c(0,  1:10),
                    shift = c(0, rep(0,10)))
+ g
 ```
 
 
-## Including Plots
+## Compute likelihood under Normal-Mix_expo
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
+
+```{r }
+mu=0 
+lf <- -0.5 * log(2 *pi*  s^2) - 0.5 * (x - mu)^2 / s^2
+
+# Exponential component:  
+  a=  1/g$scale[-1]
+  
+  # <- matrix(rep(constant_value, num_rows * num_columns), nrow = num_rows, ncol = num_columns, byrow = TRUE)
+  xright <-  ((x - mu) / s ) %*%t( rep(1, length(a)))  -  s %*%t( a)
+  lpnormright <- pnorm(xright, log.p = TRUE)
+  lg <- log( rep(1, length(x)) %*% t( a)) +  s^2%*%t( a^2) / 2 -  (x - mu)%*%t( a)    + lpnormright
+
+mat_log_lik =  cbind(lf,lg)
+ 
+```
+
+
+finding a solution with mixsqp is somewhat straightforward
+
+
+```{r}
+
+library(mixsqp)
+
+mixsqp_out <- mixsqp::mixsqp(mat_log_lik,
+                            log=TRUE,control = list(verbose=FALSE))
+mixsqp_out$x# which seems to be about right
+```
+
+
+
+## compute the posterior mean and variance
+
+```{r}
+compute_posterior_assignment <- function(fit, data, log = FALSE) {
+  data_loglik <- fit$data_loglik
+
+  # TODO: generalize to other models
+  assignment_loglik <- compute_log_prior_assignment(fit$mnreg, data)
+  assignment_loglik[, 1] <- assignment_loglik[, 1] + fit$nullweight
+
+  # normalize
+  res <- do.call(
+    rbind,
+    apply(data_loglik + assignment_loglik, 1, function(x) x - logSumExp(x), simplify = F)
+  )
+
+  # exponentiate if log=FALSE
+  if (!log) {
+    res <- exp(res)
+  }
+  return(res)
+}
+
+
+#here x is a single observation and s  corresponding sd
+# g is a gammamix object
+
+wpost_exp <- function(x, s, w,g) {
+  
+  # assuming a[1 ]=0
+  if (w[1] == 1) {
+    return(c(1, rep(0, length(x) - 1)))
+  }
+  a <- 1/ g$scale[-1]
+ 
+  lf <- dnorm(x, 0, s, log = TRUE)
+  lg <- log(a) + s^2 * a^2 / 2 - a * x + pnorm(x / s - s * a, log.p = TRUE)
+  wpost <- w*c(exp(lf), exp( lg)) / (sum(w *c(exp(lf), exp( lg))))
+
+  return(wpost)
+}
+
+
+
+
+
+
+
+
+
+post_assigm_mat <- do.call(rbind,
+                           lapply(1:length(x),
+                                 function(i)
+                                 wpost_exp(x[i], s[i], mixsqp_out$x, g)
+                                )
+                          )
+
+
+
+
+
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

@@ -91,6 +91,7 @@ compute_posterior_assignment <- function(fit, data, log = FALSE) {
 
 
 #here x is a single observation and s  corresponding sd
+#w is a vector of prior weights 
 # g is a gammamix object
 
 wpost_exp <- function(x, s, w,g) {
@@ -108,10 +109,44 @@ wpost_exp <- function(x, s, w,g) {
   return(wpost)
 }
 
+post_mean_sd <-function ( x, s, post_assignment, g , mu=0){
+   
+ 
+ a <- 1/ g$scale[-1]
+  post <- list()
+    post$mean  <- apply( post_assignment[,-1] *ashr:: my_etruncnorm(0, 
+                                                               Inf,
+                                                               x - s^2 * a,
+                                                               s),
+                         1,
+                         sum)
+    
+    post$mean2 <- apply( post_assignment[,-1] *ashr:: my_e2truncnorm(0,
+                                                                Inf,
+                                                                x - s^2 * a,
+                                                                s),
+                         1, 
+                         sum)
+    post$mean2 <- pmax(post$mean2, post$mean^2)
 
+  
+   
+    if (any(is.infinite(s))) {
+      post$mean[is.infinite(s)]  <-  apply(
+                                            post_assignment[is.infinite(s), -1] / a,
+                                            1, 
+                                          sum) 
+      post$mean2[is.infinite(s)] <-  apply(
+                                            2*post_assignment[is.infinite(s), -1] / a^2,
+                                            1, 
+                                          sum) 
+    }
+    post$sd <- sqrt(pmax(0, post$mean2 - post$mean^2))
 
-
-
+    post$mean2 <- post$mean2 + mu^2 + 2 * mu * post$mean
+    post$mean  <- post$mean + mu
+    return(post)
+}
 
 
 
@@ -123,10 +158,10 @@ post_assigm_mat <- do.call(rbind,
                                 )
                           )
 
+res =  post_mean_sd(x,s,post_assigm_mat,g)
 
 
-
-
+plot(res$mean, x_true)
 
 ```
 

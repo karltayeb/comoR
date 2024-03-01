@@ -1,11 +1,11 @@
 ---
-title: "custom como with tensorflow "
+  title: "custom como with tensorflow "
 author: "William R.P. Denault"
 date: "2024-02-29"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+  ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
@@ -19,7 +19,7 @@ library(nnet)
 library(tensorflow)
 devtools::load_all(".")
 set.seed(1)
-y <-runif(2000, max=2)
+y <-runif(2000)
 X = cbind(y)
 xtrue = 0*y
 for (i in 1:length(xtrue)){
@@ -27,15 +27,15 @@ for (i in 1:length(xtrue)){
   if ( (    y[i] <.5 & y[i] >.2 ) ){
     xtrue[i] = 0
   }else{
-    xtrue[i]= rnorm(1,sd=0.5+ 2*abs(sin(2*pi*y[i])))
+    xtrue[i]= rnorm(1,sd=0.5)
   }
 
 
 }
 plot (y,xtrue)
-x = xtrue + rnorm(length(xtrue), sd=0.2)
+x = xtrue + rnorm(length(xtrue), sd=0.02)
 plot (y,x)
-s= rep(0.2,length(x))
+s= rep(0.02,length(x))
 Z <- matrix( 1, nrow=length(x), ncol=1)
 
 
@@ -47,11 +47,11 @@ Z <- matrix( 1, nrow=length(x), ncol=1)
 #start by defining the como parameter using mixture of exponential priors and a neural net regressor
 param_como = list(max_class= 10,
                   mnreg_type="keras",
-                  prior ='mix_norm'# "mix_exp"
-                  )
+                  prior ='mix_exp'# "mix_exp"
+)
 data <- comoR:::como_prep_data (betahat=x,
-                                 se=s, X=X,
-                                 Z =Z )
+                                se=s, X=X,
+                                Z =Z )
 ```
 
 
@@ -59,7 +59,7 @@ data <- comoR:::como_prep_data (betahat=x,
 ##define neural net architecture using tensorflow
 
 
-```{r} 
+```{r}
 num_classes <- length( autoselect_scales_mix_exp(data$betahat, data$se,10))
 
 #define the nnet paramet using Keras syntax
@@ -86,7 +86,7 @@ fit =fit_como
 fit$data_loglik <- compute_data_loglikelihood(fit, data)
 hist(fit$data_loglik)
 
-fit_como <- comoR:::fit.como ( fit_como, data, max_iter = 4 )
+fit_como <- comoR:::fit.como ( fit_como, data, max_iter = 2 )
 fit =fit_como
 
 
@@ -99,7 +99,7 @@ fit =fit_como
 
 plot(fit_como$post_assignment[,1],y ,   col =ifelse(y<0.5, 1,2))
 est <- comoR:::post_mean_sd (fit,data)
- 
+
 par(mfrow=c(1,1))
 plot(est$mean, xtrue ,   col =ifelse(xtrue==0, 1,2))
 
@@ -112,7 +112,7 @@ cor (lol$result$PosteriorMean, xtrue)
 
 
 plot(lol$result$PosteriorMean,
-     est$mean,  
+     est$mean,
      col =ifelse(xtrue==0, 3,4),
      main='comparison of ebnm vs cebnm',xlab='ebnm',ylab='cebnm')
 

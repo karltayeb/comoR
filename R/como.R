@@ -43,7 +43,8 @@
 #'
 #' fit <- fit.como(data, maxiter=20)
 
-initialize_como <- function(scales,
+initialize_como <- function(
+                            scales,
                             n,
                             p,
                             p2,
@@ -51,10 +52,16 @@ initialize_como <- function(scales,
                             var0=1,
                             nullweight=0,
                             mnreg_type='constant',
-                            param_nnet =list( size=1, decay=1)
+                            epoch=10,
+                            param_nnet =list( size=1, decay=1),
+                            prior = c("mix_norm", "mix_exp"),
+                            g=NULL#prior coded under ashr type mixture form
+
                             ){
   # initialize multinomial susie-- but could be any multinomial regression
-  K <- length(scales)
+  K      <- length(scales)
+  prior  <- match.arg(prior)
+
 
   if(mnreg_type == 'constant'){
     mnreg <- initialize_constant_mnreg(K)
@@ -73,21 +80,30 @@ initialize_como <- function(scales,
     mnreg <- initialize_nnet_keras (mnreg_type = mnreg_type,
                                K          = K,
                                n          = n,
-                               param_nnet = param_nnet)
+                               param_nnet = param_nnet,
+                               epoch      = epoch )
 
   }
 
   #mn_reg <- logisticsusie:::initialize_sbmn_susie(K, n, p, p2, L, mu0, var0)
 
   # initialize_scales
-  f_list <- purrr::map(scales, ~ normal_component(mu = 0, var = .x^2))
+  if (prior == "mix_norm") {
+    f_list <- purrr::map(scales, ~ normal_component(mu = 0, var = .x^2))
+  }
+  if (prior == "mix_exp") {
+    f_list <- purrr::map(scales, ~ exp_component(mu = 0, scale = .x))
+  }
+
 
   fit <- list(
     mnreg = mnreg, # multinomial regression function. takes X, returns pi
     f_list = f_list, # component distributions
     nullweight = nullweight, # penalty promoting the first component,
     K = K,
-    elbo = -Inf
+    elbo = -Inf,
+    prior =prior,
+    g     = g
   )
   class(fit) <- c('como')
   return(fit)
@@ -104,23 +120,58 @@ initialize_como <- function(scales,
 #'  @param mnreg_type description
 #'  @param param_nnet description
 #' @export
-data_initialize_como <- function(data, max_class,
+data_initialize_como <- function(data,
+                                 prior = c("mix_norm", "mix_exp"),
+                                 max_class=10,
                                  scales=NULL,
                                  mu0=0,
                                  var0=1,
                                  nullweight=0,
                                  mnreg_type='constant',
-                                 param_nnet =list( size=1, decay=1)) {
+                                 param_nnet =list( size=1, decay=1),
+                                 epoch=10) {
   como_check_data(data)
 
+
+  prior  <- match.arg(prior)
+
   if(is.null(scales)){
-    scales <- autoselect_scales(data$betahat, data$se, max_class)
+    if(prior== "mix_norm"){
+      scales <- autoselect_scales_mix_norm(data$betahat, data$se, max_class)
+    }
+    if(prior== "mix_exp"){
+      print("yo")
+      scales <- autoselect_scales_mix_exp(data$betahat, data$se, max_class)
+    }
+
   }
 
-  K <- length(scales) # K <= max_class
-  p <- ncol(data$X)
-  n <- nrow(data$X)
+  K  <- length(scales) # K <= max_class
+  p  <- ncol(data$X)
+  n  <- nrow(data$X)
   p2 <- ncol(data$Z)
+
+
+  if(prior== "mix_exp"){
+    g <- ebnm::gammamix(pi=rep(1/length(scales ),
+                               length(scales )),
+                        shape= rep(1,
+                                   length(scales )),
+                        scale =scales,
+                        shift =rep(0,
+                                   length(scales) )
+    )
+  }
+
+  if(prior== "mix_norm"){
+    g <- ashr::normalmix(pi   = rep(1/length(scales ),
+                                length(scales )),
+                         mean = rep(0,
+                                   length(scales) ),
+                         sd   = scales
+
+    )
+  }
 
   fit <- initialize_como(scales=scales,
                          n=n,
@@ -130,7 +181,10 @@ data_initialize_como <- function(data, max_class,
                          var0=var0,
                          nullweight,
                          mnreg_type=mnreg_type,
-                         param_nnet=param_nnet)
+                         param_nnet=param_nnet,
+                         prior     = prior,
+                         g = g,
+                         epoch=epoch)
   return(fit)
 }
 
@@ -154,7 +208,7 @@ update_model.como <- function(fit, data, update_assignment = T, update_logreg=T,
 
   if (update_logreg) {
     fit$mnreg <- update_prior(fit$mnreg,
-                              resps=fit$post_assignment,
+                              resps=   fit$post_assignment,
                               loglik=  fit$data_loglik,
                               data=data)
   }
@@ -185,6 +239,7 @@ compute_elbo.como <- function(fit, data) {
 
 #' @export
 fit.como <- function(x, ...){
+
   return(fit_model(x, ...))
 }
 

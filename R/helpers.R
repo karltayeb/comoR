@@ -3,6 +3,117 @@
 
 "%!in%" <- function(x, y) !("%in%"(x, y))
 
+
+
+#' adapted from autoselect.mxisqp
+#' try to select a default range for the sigmaa values
+#' that should be used, based on the values of betahat and sebetahat
+#' mode is the location about which inference is going to be centered
+#' gridmult is the multiplier by which the sds differ across the grid
+#' @export
+autoselect_scales_mix_norm <- function(betahat, sebetahat, max_class, mult = 2) {
+  sigmaamin <- min(sebetahat) / 10 # so that the minimum is small compared with measurement precision
+  if (all(betahat^2 <= sebetahat^2)) {
+    sigmaamax <- 8 * sigmaamin # to deal with the occassional odd case where this could happen; 8 is arbitrary
+  } else {
+    sigmaamax <- 2 * sqrt(max(betahat^2 - sebetahat^2)) # this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2
+  }
+
+  if (mult == 0) {
+    return(c(0, sigmaamax / 2))
+  } else {
+    npoint <- ceiling(log2(sigmaamax / sigmaamin) / log2(mult))
+    out <- c(0,mult^((-npoint):0) * sigmaamax)#  mult^((-npoint):0) * sigmaamax
+    if (!missing(max_class)) {
+      if (length(out) > max_class) {
+        out <- seq(min(out), max(out), length.out = max_class)
+      }
+    }
+    return(out)
+  }
+}
+
+
+
+
+
+#' adapted from autoselect.mxisqp
+#' try to select a default range for the sigmaa values
+#' that should be used, based on the values of betahat and sebetahat
+#' mode is the location about which inference is going to be centered
+#' gridmult is the multiplier by which the sds differ across the grid
+#' @export
+autoselect_scales_mix_exp <- function(betahat, sebetahat, max_class, mult = 1.5) {
+  sigmaamin <- min(sebetahat) / 10 # so that the minimum is small compared with measurement precision
+  if (all(betahat^2 <= sebetahat^2)) {
+    sigmaamax <- 8 * sigmaamin # to deal with the occassional odd case where this could happen; 8 is arbitrary
+  } else {
+    sigmaamax <- 2 * sqrt(max(betahat^2 - sebetahat^2)) # this computes a rough largest value you'd want to use, based on idea that sigmaamax^2 + sebetahat^2 should be at least betahat^2
+  }
+
+  if (mult == 0) {
+    return(c(0, sigmaamax / 2))
+  } else {
+    npoint <- ceiling(log2(sigmaamax / sigmaamin) / log2(mult))
+    out <- c(0,mult^((-npoint):0) * sigmaamax)#  mult^((-npoint):0) * sigmaamax
+    if (!missing(max_class)) {
+      if (length(out) > max_class) {
+        out <- seq(min(out), max(out), length.out = max_class)
+
+        if(out[2] <1e-2 ){
+          out[2:length(out)] <- out[2:length(out)] +1e-2
+        }
+      }
+    }
+    return(out)
+  }
+}
+
+
+#' Prepare data for multinomial regression
+#' @param betahat vector of effect estimates
+#' @param se vector of standard errors for effect estimates
+#' @param X matrix of features, each row an observation
+#' @param Z matrix of fixed-effect covariates (including intercept), each row an observation
+
+como_prep_data <- function(betahat, se, X, Z){
+  data <- helper_prep(X, rep(0, length(betahat)), 1, Z)
+  data$y <- NULL
+  data$betahat <- betahat
+  data$se <- se
+  return(data)
+}
+
+helper_prep <- function (X, y, N, Z, shift = 0, shift_var = 0, center = TRUE,
+                         scale = FALSE)
+{
+  .check_X(X)
+  X <- Matrix::Matrix(scale(X, center = center, scale = scale))
+  n <- length(y)
+  if (length(N) == 1) {
+    N <- rep(N, n)
+  }
+  if (is.null(Z)) {
+    Z <- matrix(rep(1, n), nrow = n)
+  }
+  data <- list(X = X, X2 = X^2, Z = Z, y = y, N = N, shift = shift,
+               shift_var = shift_var)
+  return(data)
+}
+
+
+como_check_data <- function(data){
+  # check for betahat, se, X, X2, Z, etc
+  TRUE
+}
+
+
+.check_X <- function (X)
+{
+  stopifnot(`data$X must be matrix/Matrix` = inherits(X, c("matrix",
+                                                           "Matrix")))
+}
+
 #' Sigmoid
 #' sigmoid function coverts log-odds to probability
 #' @param x Log odds
@@ -51,33 +162,6 @@ rowCumSum <- function(X) {
 }
 
 
-#' Get Credible Sets
-#' Wraps susieR::susie_get_cs
-#' @export
-binsusie_get_cs <- function(fit,
-                            coverage = 0.95,
-                            min_abs_corr = 0.5,
-                            dedup = TRUE,
-                            squared = FALSE,
-                            check_symmetric = TRUE,
-                            n_purity = 100) {
-  res <- list(
-    X = fit$data$X,
-    alpha = fit$params$alpha,
-    V = fit$hypers$prior_variance
-  )
-  cs <- susieR::susie_get_cs(res,
-    X = fit$data$X,
-    coverage = coverage,
-    min_abs_corr = min_abs_corr,
-    dedup = dedup,
-    squared = squared,
-    check_symmetric = check_symmetric,
-    n_purity = n_purity
-  )
-  return(cs)
-}
-
 # implement normal and point mass component distributions
 
 .clamp <- function(v, .upper = 100, .lower = -100) {
@@ -93,123 +177,6 @@ is.even <- function(x) {
 }
 
 
-get_cs <- function(alpha, requested_coverage = 0.95) {
-  rho <- order(-alpha)
-  idx <- min(sum(cumsum(alpha[rho]) < requested_coverage) + 1, length(alpha))
-  cs <- rho[1:idx]
-  coverage <- sum(alpha[cs])
-  return(list(cs = cs, prob = alpha[rho[1:idx]], size = idx, requested_coverage = requested_coverage, coverage = coverage))
-}
-
-get_all_cs <- function(fit, requested_coverage = 0.95) {
-  sets <- purrr::map(1:fit$hypers$L, ~ get_cs(fit$params$alpha[.x, ], requested_coverage))
-  names(sets) <- paste0("L", 1:fit$hypers$L)
-  return(sets)
-}
-
-
-#' @title Preparing data for como fit
-#' @details Preparing data for como fit for two type of input p-values or estimated regression coefficients
-#' currently only support one type of entry, whether betahat or p-values
-#'
-#' @param betahat numeric, vector of regression coefficients  list of containing the following element see
-#' @param se numeric, corresponding standard error
-#' @param p numeric observed p-values
-#' @param zscore numeric observed z-scores
-#' @param maxiter numeric, maximum numerous of iteration set to 100 by defaults
-#' @param tol tolerance in term of change in ELBO value for stopping criterion
-#' @export
-#' @example
-#' see \link{\code{fit.como}}
-set_data_como <- function(betahat, se, p,zscore, X, ...) {
-  if (!is.numeric(X)) {
-    stop("X should be numercial vector")
-  }
-  if (!is.matrix(X)) {
-    stop("X should be a matrix")
-  }
-
-
-  if (!missing(betahat)) {
-    if (!is.numeric(betahat)) {
-      stop("betahat should be numercial vector")
-    }
-    if (!is.numeric(se)) {
-      stop("se should be numercial vector")
-    }
-    if (!(sum(c(length(se) == length(betahat), length(se) == nrow(X))) == 2)) {
-      stop(" The number of lines in X should be equal to the number of entries in Betahat and se ")
-    }
-    dat <- list(
-      betahat = betahat,
-      se = se,
-      X = X
-    )
-    class(dat) <- c("normal", "data_como")
-  }
-
-
-  if (!missing(p)) {
-    if (!is.numeric(p)) {
-      stop("p should be numercial vector")
-    }
-    if (!(length(p) == nrow(X)) == 1) {
-      stop(" The number of lines in X should be equal to the number of entries in p ")
-    }
-    if( (min(p) <0)| max(p)>1){
-      stop(" the provided p-values are not between 0 and 1")
-    }
-    dat <- list(
-      p = p,
-      se = rep(1, length(p)),
-      X = X
-    )
-    class(dat) <- c("beta", "data_como")
-  }
-  if (!missing(zscore)) {
-    if (!is.numeric(zscore)) {
-      stop("zscore should be numercial vector")
-    }
-    if (!(length(zscore) == nrow(X)) == 1) {
-      stop(" The number of lines in X should be equal to the number of entries in p ")
-    }
-
-    dat <- list(
-      p = pnorm(zscore),
-      se = rep(1, length(zscore)),
-      X = X,
-      zscore=zscore
-    )
-    class(dat) <- c("beta", "data_como")
-  }
-
-  return(dat)
-}
-
-
-get_all_cs2 <- function(alpha, requested_coverage = 0.95) {
-  if (is.null(dim(alpha))) {
-    alpha <- matrix(alpha, nrow = 1)
-  }
-  L <- dim(alpha)[1]
-  sets <- purrr::map(1:L, ~ get_cs(alpha[.x, ], requested_coverage))
-  names(sets) <- paste0("L", 1:L)
-  return(sets)
-}
-
-#' Check if a CS covers a particular index
-get_coverage <- function(cs, idx) {
-  cs$covered <- idx %in% cs$cs
-  cs$which_covered <- intersect(idx, cs$cs)
-  names(cs$covered) <- idx
-  return(cs)
-}
-
-#' Check if set of indices `idx` in a list of credible sets
-get_all_coverage <- function(css, idx) {
-  purrr::map(css, ~ get_coverage(.x, idx))
-}
-
 # convenient table of CSs from get_all_cs2
 cs_tbl2 <- function(alpha) {
   get_all_cs2(alpha) %>%
@@ -222,72 +189,11 @@ cs_tbl2 <- function(alpha) {
 }
 
 
-#' Compute PIPs
-get_pip <- function(alpha) {
-  if (is.null(dim(alpha))) {
-    alpha <- matrix(alpha, nrow = 1)
-  }
-
-  p <- dim(alpha)[2]
-  pip <- purrr::map_dbl(1:p, ~ 1 - prod(1 - alpha[, .x]))
-  return(pip)
-}
 #' set xi, update tau
 set_xi <- function(fit, xi) {
   fit$params$xi <- xi
   fit$params$tau <- compute_tau(fit)
   return(fit)
-}
-
-
-# fit a como object
-# cs an object computed using get_all_cs
-# X matrix of covariate
-# min.purity minimum purity level
-
-which_dummy_cs_como <- function( cs, X,min.purity){
-  dummy.cs <- list()
-  for ( k in 1:length(cs)){
-    dummy.cs[[k]] <- NULL
-    for ( j in 1:length(cs[[k]]))
-    {
-      tt <- c()
-      if( min(cor( X[,cs[[k]][[j]]$cs])) <  min.purity){
-        #check if the purity of cs l is lower that min.purity
-        tt<-  c( tt,j)
-      }
-
-
-    }
-    if( length(tt)>0){
-      dummy.cs[[k]] <- tt
-    }
-
-  }
-  dummy.cs[[(k+1)]] <-NA #ensure that if everybody is null then the list exist with k+1 element
-
-  return(dummy.cs)
-
-}
-
-
-# copied form; susiF.alpha
-#l_cs a list of CS
-#X the matrix of genotype
-
-cal_purity_cFDR<- function(l_cs,X){
-  tt <- list()
-  for (k in 1:length(l_cs)){
-    if(length(unlist(l_cs[[k]]$cs))==1 ){
-      tt[[k]] <- 1
-    }else{
-      x <-abs( cor(X[,unlist(l_cs[[k]]$cs   ) ]))
-
-
-      tt[[k]] <-  min( x[col(x) != row(x)])
-    }
-  }
-  return( tt )
 }
 
 

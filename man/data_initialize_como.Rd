@@ -14,7 +14,8 @@
 \usage{
 data_initialize_como(
   data,
-  max_class,
+  prior = c("mix_norm", "mix_exp"),
+  max_class = 10,
   scales = NULL,
   mu0 = 0,
   var0 = 1,

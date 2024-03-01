@@ -122,11 +122,13 @@ compute_log_prior_assignment.mult_reg <- function(mnreg, data){
 }
 
 ## Keras object
-initialize_nnet_keras <-function (mnreg_type,K ,n , param_nnet ){
-  logpi <-  matrix (1/K, nrow=n, ncol = K)
+initialize_nnet_keras <-function (mnreg_type,K ,n , param_nnet,epoch ){
+  logpi <-  matrix (log(1/K), nrow=n, ncol = K)
   mnreg <- list(logpi=logpi,
                 K=K,
-                param_nnet= param_nnet)
+                param_nnet= param_nnet,
+                model= NULL,
+                epoch=epoch)
   class(mnreg)="keras_obj"
   return(mnreg)
 
@@ -156,7 +158,13 @@ compute_log_prior_assignment.keras_obj <- function(mnreg, data){
 update_prior.keras_obj<- function(mnreg, resps,loglik, data   ){
   X  = as.matrix(data$X)
 
+
   model1 <- keras::clone_model(mnreg$param_nnet )
+  if (!is.null(mnreg$model)){
+
+    set_weights(model1, get_weights(mnreg$model))
+  }
+
 
   model1 <-  model1 %>% compile(
     loss = custom_loss,
@@ -180,7 +188,7 @@ update_prior.keras_obj<- function(mnreg, resps,loglik, data   ){
 
 
   mnreg$logpi <- log(predict(model1, x_train))
-  mnreg$model <-model1
+  mnreg$model <- model1
 
   return(mnreg)
 }
@@ -194,15 +202,13 @@ custom_loss <- function(y_true, y_pred) {
       log(sum(exp(y_true1) * y_pred1))
     }
   )
-  tt <- sum(case_wise_tt)
-  mse <- -tt
-  return(mse)
+  out <- -sum(case_wise_tt)
+  #out <- out - max(0,out) + log(out -min(out,0)+1 )+1# doing the same thing as below
+  # but tensorflow do not like logical operation in cus tom loss
+  #out  <- ifelse(out>1, log(out)+1, out)#bend the loss for postive case seems to created problem
+  # when loss is over 900
+  return(out)
 }
-
-
-# SuSiE prior------------
-
-
 
 
 

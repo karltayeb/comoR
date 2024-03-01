@@ -1,5 +1,31 @@
 # Generics -----
 
+
+### likelihood computation ----
+#' Compute Data Log Likelihood
+#' Compute p(betahat_i| z=k, se_i) i = 1..., n, k=1... K
+#' @title Compute data likelihood
+#' @description Compute data likelihood
+#' @param fit an como fit object
+#' @return n x K matrix of  log likelihood of each data point for each component
+compute_data_loglikelihood <- function(fit,...){
+  UseMethod("compute_data_loglikelihood")
+}
+
+
+#' @export
+compute_data_loglikelihood.default <- function(fit, data){
+  data_loglik <- do.call(cbind,
+                         purrr::map(
+                           fit$f_list, ~ convolved_logpdf(.x,  data$betahat,  data$se)
+                         )
+  )
+  return(data_loglik)
+}
+
+###Convoled logpdf -----
+
+
 #' Convolved logpdf
 #'
 #' Generic function for `component_distribution` objects, computes the loglikelihood of an observation from
@@ -85,7 +111,7 @@ is.normal <- function(x) {
 convolved_logpdf.normal <- function(dist, betahat, se) {
   sd <- sqrt(se^2 + dist$var)
   logp <- dnorm(betahat, mean = dist$mu, sd = sd, log = TRUE)
-  logp <- .clamp(logp, 100, -100)
+  logp <- .clamp(logp, 1e3, -1e3)
   return(logp)
 }
 
@@ -103,31 +129,46 @@ update_params.normal <- function(dist, betahat, se, weights) {
 
 
 
-# Beta components -----
-#strictly increasing and convex, if alpha \geq 1 and beta \leq1
-# strictly decreasing and convex if alpha \leq 1 and beta \geq1
-#' @export
-beta_component <- function(alpha = 1, beta=1) {
-  f <- list(alpha = alpha,
-            beta  = beta
-            )
-  class(f) <- c("beta", "component_distribution")
+# exponential Component----
+
+exp_component <- function(mu = 0, scale = 1) {
+
+  if( scale==0){
+    f <- point_component(mu=mu)
+    return(f)
+  }
+  f <- list(mu = mu, scale = scale)
+  class(f) <- c("exp", "component_distribution")
   return(f)
 }
 
+
+#' Convolution between  an exponential and Normal distribution with variance given by sum of component dist. and noise
 #' @export
-convolved_logpdf.beta <- function(dist, p, se = 1) {
-  logp <- dbeta(p,
-                shape1 = dist$alpha,
-                shape2 = dist$beta
-                )
-  logp <- .clamp(logp, 100, -100)
+convolved_logpdf.exp <- function(dist, betahat, se) {
+  # essentially from the ebnm package
+  s <- se
+  a = 1/ dist$scale
+  mu <- dist$mu
+
+
+  xright <-  ((betahat - mu) / s )* a  -  s  * ( a)
+  lpnormright <- pnorm(xright, log.p = TRUE)
+  logp <- log(a) + s^2 * a^2 / 2 - a * (betahat - mu) + lpnormright
+
+
+  logp <- .clamp(logp, 1e3, -1e2)
+
+
+  if(length(which(logp == -1e2))>0){
+
+
+    logp[which( logp == -1e2 )] <- runif(length(which(logp == -1e2)), -1.25e2,   -100)
+  }
+
+
+
   return(logp)
 }
 
-#' @export
-update_params.beta <- function(dist, p, se = 1, weights) {
-  # TODO: decide how to update alpha
-  # weights come from posterior assignment probabilities.
-}
 

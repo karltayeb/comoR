@@ -147,7 +147,7 @@ fit_custom <- flash_init(Z, var_type = 2) %>%
   flash_set_verbose(0) %>%
   flash_greedy(
     Kmax = 2,
-    ebnm_fn = c(cebnm_L, ebnm_ash)
+    ebnm_fn = c(cebnm_L, ebnm_ash), maxiter = 5
   )
 
 

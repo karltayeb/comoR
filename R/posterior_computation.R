@@ -21,7 +21,7 @@ compute_posterior_assignment_mix_norm <-function(fit, data, log=FALSE){
   data_loglik            <- fit$data_loglik
   assignment_loglik      <- compute_log_prior_assignment(fit$mnreg, data)
   assignment_loglik[, 1] <- assignment_loglik[, 1] + fit$nullweight
-
+#browser()
   # normalize
   res <- do.call(
     rbind,

@@ -119,7 +119,7 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
                        param_nnet= param_nnet) # initialize the model from the data
   fit <- comoR:::fit.como (  fit, data, max_iter = 2 )
 
-
+ 
   est <- comoR:::post_mean_sd (fit,data)
 
 

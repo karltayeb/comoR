@@ -83,8 +83,8 @@ fit_como  <- rlang::exec( "data_initialize_como", !!! param_como ,
                           param_nnet= param_nnet) # initialize the model from the data
 fit =fit_como
 
-fit$data_loglik <- compute_data_loglikelihood(fit, data)
-hist(fit$data_loglik)
+#fit$data_loglik <- compute_data_loglikelihood(fit, data)
+#hist(fit$data_loglik)
 
 fit_como <- comoR:::fit.como ( fit_como, data, max_iter = 4 )
 fit =fit_como

@@ -551,135 +551,127 @@ sim_func_cEBMF <- function( N=2000, # number of row
   Y_obs <- Y_true+ matrix( rnorm(N*L, sd= noise_level), ncol=L)
 
 
-  res_susie <- cEBMF  (Y=Y_obs,
-                 X_l=X_l,
-                 X_f=X_f,
-                 reg_method="logistic_susie",
-                 K=K, init_type = "udv_si",
-                 param_como = list(max_class=max_class,mnreg="mult_reg"),
-                 param_como2 = list(f1_dist = 'ash'),
-                 maxit_como =max_iter_como ,
-                 param_nnet= list(size=3, decay=1.2),
-                 maxit=max_iter_cEBMF)
-
-   res_nnet <- cEBMF  (Y=Y_obs,
-                 X_l=X_l,
-                 X_f=X_f,
-                 reg_method="nnet",
-                 K=K, init_type = "udv_si",
-                 param_como = list(max_class=max_class,mnreg="mult_reg"),
-                 maxit_como =max_iter_como ,
-                 param_nnet= list(size=3, decay=1.2),
-                 maxit=max_iter_cEBMF)
-
-  f <- flashier::flash(Y_obs)
-  Y_est_susie <- Reduce("+", lapply( 1:res_susie$K, function(k) res_susie $loading[,k] %*%t(res_susie $factor[,k] ) ))
-  Y_est_nnet <- Reduce("+", lapply( 1:res_susie$K, function(k) res_nnet $loading[,k] %*%t(res_nnet $factor[,k] ) ))
 
 
-  rmse_cEBMF_susie   <- sqrt(mean( (Y_true-Y_est_susie)^2))
-  rmse_cEBMF_nnet   <- sqrt(mean( (Y_true-Y_est_susie)^2))
-  rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
-  rmse         <- c(rmse_cEBMF_susie,rmse_cEBMF_nnet , rmse_flash)
-  names(rmse ) <- c("rmse_cEBMF_susie","rmse_cEBMF_nnet", "rmse_flash")
 
-   fm_factor <- list()
+  cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
 
-  for ( k in 1:length(res_susie$model_factor)){
+    if (length(x) == 3){ ### just to satisfy check of custom function
+      return (ebnm_flat(x))
+    }
+    Z <- matrix( 1, nrow=length(x), ncol=1)
+    param_como = list(max_class= 10,
+                      mnreg_type="keras")
+    data <- comoR:::como_prep_data (betahat=x,
+                                    se=s, X=X,
+                                    Z =Z )
+
+    # you need to retreive the actual number of mixture component in the model
+    num_classes <- length( autoselect_scales_mix_norm(data$betahat, data$se,10))
+
+    #define the nnet paramet using Keras syntax
+    param_nnet =keras_model_sequential() %>%
+      layer_dense(units = 64,
+                  activation = 'relu',
+                  input_shape = c(ncol(X))) %>%
+      layer_dense(units = 64,
+                  activation = 'relu' ) %>%
+      layer_dense(units = 64,
+                  activation = 'relu' ) %>%
+      layer_dense(units = num_classes,
+                  activation = 'softmax')
+
+    # run comoR
+    fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
+                         data= data,
+                         param_nnet= param_nnet) # initialize the model from the data
+    fit <- comoR:::fit.como (  fit, data, max_iter = 6 )
 
 
-    res <-res_susie$model_factor[[k]]$logreg$logistic_ibss
-    n_effect <-   do.call(c, #number of effect per CS
+    est <- comoR:::post_mean_sd (fit,data)
 
-                          lapply(1:length(res$cs), function(k)
-                            length(which(true_pos_f%in% res$cs[[k]]$cs))
-                          )
+
+
+    g <- ashr::normalmix(rep(1/length(fit$f_list),length(fit$f_list)),
+                         rep( 0, length(fit$f_list)),
+                         do.call(c, lapply( 1: length(fit$f_list) ,
+                                            function(k) {sqrt(fit$f_list [[k]]$var) } )
+                         )
     )
 
-
-
-
-    #number of effect found
-    nfalse_effect <- do.call(c, lapply(1:length(res$cs), function(k)
-      ifelse( length(which(true_pos_f%in%res$cs[[k]]$cs ))==0, 1,0)
-    )
-    )
-
-    size_set <- do.call(c, lapply(1:length(res$cs), function(k)
-      res$cs[[k]]$size
-    )
-    )
-
-    est_purity <- do.call(c,cal_purity_cFDR(l_cs =  res$cs,
-                                            as.matrix(X_f))
-    )
-
-
-    #est_max_bf <- do.call(c, lapply( 1: length(res_susie$model_factor[[k]]$logreg$logistic_ibss$fits ),
-    #                                  function(l)  max (res_susie$model_factor[[k]]$logreg$logistic_ibss$fits[[l]]$lbf)))
-    est_max_bf <- do.call(c, lapply( 1: length(res$fits ),
-                                     function(l)  max (res$fits[[l]]$lbf)))
-
-
-    fm_factor[[k]]<- data.frame (nfalse_effect= nfalse_effect,
-                         n_effect     = n_effect ,
-                         purity       =  est_purity [1:length( nfalse_effect)],
-                         maxLBF       = est_max_bf[1:length( nfalse_effect)],
-                         size_set     =  size_set [1:length( nfalse_effect)],
-                         factor       = rep( k, length( nfalse_effect))
+    out <- list( data= data.frame(x=data$betahat,
+                                  s=data$se),
+                 posterior = data.frame(mean= est$mean,
+                                        second_moment=(est$sd^2+est$mean^2)
+                 ) ,
+                 fitted_g = g,
+                 log_likelihood=sum( comoR:::compute_data_loglikelihood(fit, data) * (fit$post_assignment))
 
     )
+
+    return( out)
+
+  }
+  cebnm_F <- function( x,s,g_init,fix_g=TRUE, output){
+    if (length(x) == 3){ ### just to satisfy check of custom function
+      return (ebnm_flat(x))
+    }
+
+    Z <- matrix( 1, nrow=length(x), ncol=1)
+    Z <- matrix( 1, nrow=length(x), ncol=1)
+
+    param_como = list(max_class=10,mnreg_type='constant')
+    param_nnet =list( )
+
+    data <- comoR:::como_prep_data  (betahat=x,
+                                     se=s, X=Y,
+                                     Z =Z )
+    fit <- rlang::exec( "data_initialize_como", !!! param_como ,
+                        data= data ) # initialize the model from the data
+    fit <- comoR:::fit.como ( fit, data, max_iter = 5 )
+
+    est <- comoR:::post_mean_sd (fit,data)
+
+    g <- ashr::normalmix(rep(1/length(fit$f_list),length(fit$f_list)),
+                         rep( 0, length(fit$f_list)),
+                         do.call(c, lapply( 1: length(fit$f_list) ,
+                                            function(k) {sqrt(fit$f_list [[k]]$var) } )
+                         )
+    )
+
+    out <- list( data= data.frame(x=data$betahat,
+                                  s=data$se),
+                 posterior = data.frame(mean= est$mean,
+                                        second_moment= (est$sd^2+est$mean^2)
+                 ) ,
+                 fitted_g = g,
+                 log_likelihood=sum( comoR:::compute_data_loglikelihood(fit, data) * (fit$post_assignment))
+
+    )
+    return( out)
 
   }
 
-   fm_loadings <- list()
-
-   for ( k in 1:length(res_susie$model_factor)){
-
-
-     res <-res_susie$model_loading[[k]]$logreg$logistic_ibss
-     n_effect <-   do.call(c, #number of effect per CS
-
-                           lapply(1:length(res$cs), function(k)
-                             length(which(true_pos_f%in% res$cs[[k]]$cs))
-                           )
-     )
+  library(flashier)
+  fit_custom <- flash_init(Y_obs, var_type = 2) %>%
+    flash_set_verbose(0) %>%
+    flash_greedy(
+      Kmax = 2,
+      ebnm_fn = c(cebnm_L, ebnm_ash)
+    )
 
 
 
-
-     #number of effect found
-     nfalse_effect <- do.call(c, lapply(1:length(res$cs), function(k)
-       ifelse( length(which(true_pos_f%in%res$cs[[k]]$cs ))==0, 1,0)
-     )
-     )
-
-     size_set <- do.call(c, lapply(1:length(res$cs), function(k)
-       res$cs[[k]]$size
-     )
-     )
-
-     est_purity <- do.call(c,cal_purity_cFDR(l_cs =  res$cs,
-                                             as.matrix(X_f))
-     )
+   f <- flashier::flash(Y_obs)
 
 
-     #est_max_bf <- do.call(c, lapply( 1: length(res_susie$model_factor[[k]]$logreg$logistic_ibss$fits ),
-     #                                  function(l)  max (res_susie$model_factor[[k]]$logreg$logistic_ibss$fits[[l]]$lbf)))
-     est_max_bf <- do.call(c, lapply( 1: length(res$fits ),
-                                      function(l)  max (res$fits[[l]]$lbf)))
 
 
-     fm_loadings[[k]]<- data.frame (nfalse_effect= nfalse_effect,
-                                  n_effect     = n_effect ,
-                                  purity       =  est_purity [1:length( nfalse_effect)],
-                                  maxLBF       = est_max_bf[1:length( nfalse_effect)],
-                                  size_set     =  size_set [1:length( nfalse_effect)],
-                                  factor       = rep( k, length( nfalse_effect))
+  rmse_cEBMF_nnet   <- sqrt(mean( (Y_true-fitted(fit_custom ))^2))
+  rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
+  rmse         <- c( rmse_cEBMF_nnet , rmse_flash)
+  names(rmse ) <- c( "rmse_cEBMF_nnet", "rmse_flash")
 
-     )
-
-   }
 
 
 
@@ -708,9 +700,8 @@ sim_func_cEBMF <- function( N=2000, # number of row
  )
 
   out <- list(rmse      = rmse,
-              par       = par,
-              fm_loadings=  do.call(rbind,fm_loadings),
-              fm_factor= do.call(rbind,fm_factor)
+              par       = par
+               )
 
   )
   return( out)

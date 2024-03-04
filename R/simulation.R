@@ -490,7 +490,8 @@ sim_func_cEBMF <- function( N=2000, # number of row
   data(N3finemapping)
   attach(N3finemapping)
   library(comoR)
-
+  library(tensorflow)
+  library(keras)
   if( missing( seed)){
     set.seed(rpois(lambda = 100,n=1))
   }else{
@@ -563,7 +564,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     param_como = list(max_class= 10,
                       mnreg_type="keras")
     data <- comoR:::como_prep_data (betahat=x,
-                                    se=s, X=X,
+                                    se=s, X=X_l,
                                     Z =Z )
 
     # you need to retreive the actual number of mixture component in the model
@@ -573,7 +574,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     param_nnet =keras_model_sequential() %>%
       layer_dense(units = 64,
                   activation = 'relu',
-                  input_shape = c(ncol(X))) %>%
+                  input_shape = c(ncol(X_l))) %>%
       layer_dense(units = 64,
                   activation = 'relu' ) %>%
       layer_dense(units = 64,
@@ -616,21 +617,38 @@ sim_func_cEBMF <- function( N=2000, # number of row
     if (length(x) == 3){ ### just to satisfy check of custom function
       return (ebnm_flat(x))
     }
-
     Z <- matrix( 1, nrow=length(x), ncol=1)
-    Z <- matrix( 1, nrow=length(x), ncol=1)
+    param_como = list(max_class= 10,
+                      mnreg_type="keras")
+    data <- comoR:::como_prep_data (betahat=x,
+                                    se=s, X=X_f,
+                                    Z =Z )
 
-    param_como = list(max_class=10,mnreg_type='constant')
-    param_nnet =list( )
+    # you need to retreive the actual number of mixture component in the model
+    num_classes <- length( autoselect_scales_mix_norm(data$betahat, data$se,10))
 
-    data <- comoR:::como_prep_data  (betahat=x,
-                                     se=s, X=Y,
-                                     Z =Z )
-    fit <- rlang::exec( "data_initialize_como", !!! param_como ,
-                        data= data ) # initialize the model from the data
-    fit <- comoR:::fit.como ( fit, data, max_iter = 5 )
+    #define the nnet paramet using Keras syntax
+    param_nnet =keras_model_sequential() %>%
+      layer_dense(units = 64,
+                  activation = 'relu',
+                  input_shape = c(ncol(X_f))) %>%
+      layer_dense(units = 64,
+                  activation = 'relu' ) %>%
+      layer_dense(units = 64,
+                  activation = 'relu' ) %>%
+      layer_dense(units = num_classes,
+                  activation = 'softmax')
+
+    # run comoR
+    fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
+                         data= data,
+                         param_nnet= param_nnet) # initialize the model from the data
+    fit <- comoR:::fit.como (  fit, data, max_iter = 6 )
+
 
     est <- comoR:::post_mean_sd (fit,data)
+
+
 
     g <- ashr::normalmix(rep(1/length(fit$f_list),length(fit$f_list)),
                          rep( 0, length(fit$f_list)),
@@ -642,12 +660,13 @@ sim_func_cEBMF <- function( N=2000, # number of row
     out <- list( data= data.frame(x=data$betahat,
                                   s=data$se),
                  posterior = data.frame(mean= est$mean,
-                                        second_moment= (est$sd^2+est$mean^2)
+                                        second_moment=(est$sd^2+est$mean^2)
                  ) ,
                  fitted_g = g,
                  log_likelihood=sum( comoR:::compute_data_loglikelihood(fit, data) * (fit$post_assignment))
 
     )
+
     return( out)
 
   }
@@ -657,7 +676,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     flash_set_verbose(0) %>%
     flash_greedy(
       Kmax = 2,
-      ebnm_fn = c(cebnm_L, ebnm_ash)
+      ebnm_fn = c(cebnm_L, cebnm_F)
     )
 
 

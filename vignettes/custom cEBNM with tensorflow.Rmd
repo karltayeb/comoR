@@ -98,6 +98,10 @@ fit =fit_como
 ```{r}
 
 plot(fit_como$post_assignment[,1],y ,   col =ifelse(y<0.5, 1,2))
+
+
+
+plot(fit_como$post_assignment[,3],y ,   col =ifelse(y<0.5, 1,2))
 est <- comoR:::post_mean_sd (fit,data)
  
 par(mfrow=c(1,1))

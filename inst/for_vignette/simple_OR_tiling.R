@@ -52,12 +52,12 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
   Z <- matrix( 1, nrow=length(x), ncol=1)
   param_como = list(max_class= 10,
                     mnreg_type="keras")
-  data <- comoR:::prep_data_como2 (betahat=x,
+  data <- comoR:::como_prep_data (betahat=x,
                                    se=s, X=X,
                                    Z =Z )
 
   # you need to retreive the actual number of mixture component in the model
-  num_classes <- length( autoselect_scales(data$betahat, data$se,10))
+  num_classes <- length( autoselect_scales_mix_norm(data$betahat, data$se,10))
 
   #define the nnet paramet using Keras syntax
   param_nnet =keras_model_sequential() %>%

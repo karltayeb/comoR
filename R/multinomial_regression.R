@@ -181,7 +181,7 @@ update_prior.keras_obj<- function(mnreg, resps,loglik, data   ){
 
   history <-model1 %>% fit(
     x_train, y_train,
-    epochs = 20,
+    epochs = mnreg$epoch,
     batch_size = custom_batch_size
   )
 

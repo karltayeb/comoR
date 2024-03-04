@@ -703,7 +703,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
               par       = par
                )
 
-  )
+
   return( out)
 }
 

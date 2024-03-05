@@ -55,8 +55,8 @@ initialize_como <- function(
                             epoch=10,
                             param_nnet =list( size=1, decay=1),
                             prior = c("mix_norm", "mix_exp"),
-                            g=NULL#prior coded under ashr type mixture form
-
+                            g=NULL,#prior coded under ashr type mixture form
+                            verbose_keras=0
                             ){
   # initialize multinomial susie-- but could be any multinomial regression
   K      <- length(scales)
@@ -81,7 +81,8 @@ initialize_como <- function(
                                K          = K,
                                n          = n,
                                param_nnet = param_nnet,
-                               epoch      = epoch )
+                               epoch      = epoch ,
+                               verbose    = verbose_keras)
 
   }
 
@@ -129,7 +130,8 @@ data_initialize_como <- function(data,
                                  nullweight=0,
                                  mnreg_type='constant',
                                  param_nnet =list( size=1, decay=1),
-                                 epoch=10) {
+                                 epoch=10,
+                                 verbose_keras=0) {
   como_check_data(data)
 
 
@@ -184,7 +186,8 @@ data_initialize_como <- function(data,
                          param_nnet=param_nnet,
                          prior     = prior,
                          g = g,
-                         epoch=epoch)
+                         epoch=epoch,
+                         verbose_keras=verbose_keras)
   return(fit)
 }
 

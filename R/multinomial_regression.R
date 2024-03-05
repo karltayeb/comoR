@@ -122,13 +122,14 @@ compute_log_prior_assignment.mult_reg <- function(mnreg, data){
 }
 
 ## Keras object
-initialize_nnet_keras <-function (mnreg_type,K ,n , param_nnet,epoch ){
+initialize_nnet_keras <-function (mnreg_type,K ,n , param_nnet,epoch, verbose=0 ){
   logpi <-  matrix (log(1/K), nrow=n, ncol = K)
   mnreg <- list(logpi=logpi,
                 K=K,
                 param_nnet= param_nnet,
                 model= NULL,
-                epoch=epoch)
+                epoch=epoch,
+                verbose=verbose)
   class(mnreg)="keras_obj"
   return(mnreg)
 
@@ -182,7 +183,8 @@ update_prior.keras_obj<- function(mnreg, resps,loglik, data   ){
   history <-model1 %>% fit(
     x_train, y_train,
     epochs = mnreg$epoch,
-    batch_size = custom_batch_size
+    batch_size = custom_batch_size,
+      verbose  = mnreg$verbose
   )
 
 

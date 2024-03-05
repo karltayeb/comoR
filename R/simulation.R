@@ -481,7 +481,8 @@ sim_func_cEBMF <- function( N=2000, # number of row
                             max_iter_cEBMF=20,
                             max_iter_como=20,
                             max_class=10,
-                            seed
+                            seed,
+                            epoch=50
 ){
 
   library(softImpute)
@@ -562,7 +563,8 @@ sim_func_cEBMF <- function( N=2000, # number of row
     }
     Z <- matrix( 1, nrow=length(x), ncol=1)
     param_como = list(max_class= 10,
-                      mnreg_type="keras")
+                      mnreg_type="keras",
+                      epoch = epoch)
     data <- comoR:::como_prep_data (betahat=x,
                                     se=s, X=X_l,
                                     Z =Z )
@@ -586,7 +588,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
                          data= data,
                          param_nnet= param_nnet) # initialize the model from the data
-    fit <- comoR:::fit.como (  fit, data, max_iter = 6 )
+    fit <- comoR:::fit.como (  fit, data, max_iter = 20 )
 
 
     est <- comoR:::post_mean_sd (fit,data)
@@ -619,7 +621,8 @@ sim_func_cEBMF <- function( N=2000, # number of row
     }
     Z <- matrix( 1, nrow=length(x), ncol=1)
     param_como = list(max_class= 10,
-                      mnreg_type="keras")
+                      mnreg_type="keras",
+                      epoch = epoch)
     data <- comoR:::como_prep_data (betahat=x,
                                     se=s, X=X_f,
                                     Z =Z )
@@ -643,7 +646,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
                          data= data,
                          param_nnet= param_nnet) # initialize the model from the data
-    fit <- comoR:::fit.como (  fit, data, max_iter = 6 )
+    fit <- comoR:::fit.como (  fit, data, max_iter = 20 )
 
 
     est <- comoR:::post_mean_sd (fit,data)
@@ -672,6 +675,8 @@ sim_func_cEBMF <- function( N=2000, # number of row
   }
 
   library(flashier)
+
+  f <- flashier::flash(Y_obs)
   fit_custom <- flash_init(Y_obs, var_type = 2) %>%
     flash_set_verbose(0) %>%
     flash_greedy(
@@ -679,17 +684,26 @@ sim_func_cEBMF <- function( N=2000, # number of row
       ebnm_fn = c(cebnm_L, cebnm_F)
     )
 
+  f <- flashier::flash(Y_obs)
 
-
-   f <- flashier::flash(Y_obs)
+  fit_custom_init_default <- flash_init(Y_obs, var_type = 2) %>%
+    flash_set_verbose(0) %>%
+    flash_factors_init(f)  %>%
+    flash_greedy(
+      Kmax = 2,
+      ebnm_fn = c(cebnm_L, cebnm_F)
+    )
 
 
 
 
   rmse_cEBMF_nnet   <- sqrt(mean( (Y_true-fitted(fit_custom ))^2))
+  rmse_cEBMF_init   <- sqrt(mean( (Y_true-fitted(fit_custom_init_default ))^2))
   rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
-  rmse         <- c( rmse_cEBMF_nnet , rmse_flash)
-  names(rmse ) <- c( "rmse_cEBMF_nnet", "rmse_flash")
+  rmse         <- c( rmse_cEBMF_nnet , rmse_cEBMF_init , rmse_flash)
+  names(rmse ) <- c( "rmse_cEBMF_nnet",
+                     "rmse_cEBMF_nnet_flash_init",
+                     "rmse_flash")
 
 
 

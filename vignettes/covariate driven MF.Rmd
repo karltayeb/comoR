@@ -2,7 +2,7 @@
 title: "covariate driven Matrix factorization using Tensorflow and flashier"
 author: "William R.P. Denault"
 date: "2024-02-29"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -91,7 +91,7 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
   param_como = list(max_class= 10,
                     mnreg_type="keras",
                      prior    ='mix_norm',
-                     epoch     =10)
+                     epoch     =20)
   data <- comoR:::como_prep_data (betahat=x,
                                    se=s, X=X,
                                    Z =Z )
@@ -117,7 +117,7 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
   fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
                        data= data,
                        param_nnet= param_nnet) # initialize the model from the data
-  fit <- comoR:::fit.como (  fit, data, max_iter = 2 )
+  fit <- comoR:::fit.como (  fit, data, max_iter = 10 )
 
  
   est <- comoR:::post_mean_sd (fit,data)
@@ -149,13 +149,14 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
 
 
 ## plug it into flashier custom fit
-```{r, echo=FALSE}
+```{r echo=TRUE, message=FALSE}
 
 library(flashier)
 fit_custom <- flash_init(Z, var_type = 2) %>%
+ 
   flash_set_verbose(0) %>%
   flash_greedy(
-    Kmax = 3,
+    Kmax = 5,
     ebnm_fn = c(cebnm_L, ebnm_ash) 
   )
 
@@ -210,16 +211,7 @@ ggtitle("flashier")
 
 
 df <- data.frame(x=x,y=y, L= fit_custom$L_pm[,2])
-ggplot(df, aes ( x,y, col = abs(L)))+
-  geom_point(size=2)+
-  scale_color_continuous(type = "viridis")+
-  geom_hline(yintercept = 0.33)+
-  geom_hline(yintercept = 0.66)+
-  geom_vline(xintercept = 0.66)+
-  geom_vline(xintercept = 0.33)+
-  ggtitle("cEBMF")
-
-df <- data.frame(x=x,y=y, L= fit_default$L_pm[,2])
+ 
 P21 <-ggplot(df, aes ( x,y, col = abs(L)))+
   geom_point(size=2)+
   scale_color_continuous(type = "viridis")+

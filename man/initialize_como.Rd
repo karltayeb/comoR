@@ -13,9 +13,11 @@ initialize_como(
   var0 = 1,
   nullweight = 0,
   mnreg_type = "constant",
+  epoch = 10,
   param_nnet = list(size = 1, decay = 1),
   prior = c("mix_norm", "mix_exp"),
-  g = NULL
+  g = NULL,
+  verbose_keras = 0
 )
 }
 \arguments{

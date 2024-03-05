@@ -160,11 +160,11 @@ convolved_logpdf.exp <- function(dist, betahat, se) {
   logp <- .clamp(logp, 1e3, -1e2)
 
 
-  if(length(which(logp == -1e2))>0){
+  #if(length(which(logp == -1e2))>0){
 
 
-    logp[which( logp == -1e2 )] <- runif(length(which(logp == -1e2)), -1.25e2,   -100)
-  }
+  #  logp[which( logp == -1e2 )] <- runif(length(which(logp == -1e2)), -1.25e2,   -100)
+ # }
 
 
 

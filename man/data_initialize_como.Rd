@@ -21,7 +21,9 @@ data_initialize_como(
   var0 = 1,
   nullweight = 0,
   mnreg_type = "constant",
-  param_nnet = list(size = 1, decay = 1)
+  param_nnet = list(size = 1, decay = 1),
+  epoch = 10,
+  verbose_keras = 0
 )
 }
 \description{

@@ -27,15 +27,15 @@ for (i in 1:length(xtrue)){
   if ( (    y[i] <.5 & y[i] >.2 ) | (y[i] >1.5 & y[i] <1.8) ){
     xtrue[i] = 0
   }else{
-    xtrue[i]= rnorm(1,sd=0.5+ 2*abs(sin(2*pi*y[i])))
+    xtrue[i]= rnorm(1,sd=0.5+ 2*abs(sin( pi*y[i])))
   }
 
 
 }
 plot (y,xtrue)
-x = xtrue + rnorm(length(xtrue), sd=0.2)
+x = xtrue + rnorm(length(xtrue), sd=1)
 plot (y,x)
-s= rep(0.2,length(x))
+s= rep(1,length(x))
 Z <- matrix( 1, nrow=length(x), ncol=1)
 
 
@@ -86,7 +86,7 @@ fit =fit_como
 #fit$data_loglik <- compute_data_loglikelihood(fit, data)
 #hist(fit$data_loglik)
 
-fit_como <- comoR:::fit.como ( fit_como, data, max_iter = 4 )
+fit_como <- comoR:::fit.como ( fit_como, data, max_iter = 10 )
 fit =fit_como
 
 

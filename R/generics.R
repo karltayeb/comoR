@@ -1,17 +1,44 @@
-#' @importFrom logisticsusie fit_model
+
 #' @export
-logisticsusie::fit_model
+compute_kl <- function(x, ...){
+  UseMethod("compute_kl", x)
+}
 
-#' @importFrom logisticsusie update_model
 #' @export
-logisticsusie::update_model
+compute_elbo <- function(x, ...){
+  UseMethod("compute_elbo", x)
+}
 
-#' @importFrom logisticsusie compute_elbo
 #' @export
-logisticsusie::compute_elbo
+update_model <- function(x, ...){
+  UseMethod("update_model", x)
+}
 
 
 
+
+
+
+fit_model <- function(x, ...){
+  UseMethod("fit_model", x)
+}
+
+#' @export
+fit_model.default <- function(fit, data, ..., max_iter=100, tol=1e-5){
+  tictoc::tic()
+  for(i in 1:max_iter){
+    fit <- update_model(fit, data, ...)
+
+    # Check convergence, assumes fit is tracking elbo
+    if(abs(diff(tail(fit$elbo, 2))) < tol){
+      message('converged')
+      break
+    }
+  }
+  timer <- tictoc::toc()
+  fit$elapsed_time <- with(timer, toc - tic)
+  return(fit)
+}
 
 
 #' @title Compute post first and second moment from como and como2 object

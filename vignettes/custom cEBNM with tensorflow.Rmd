@@ -24,7 +24,7 @@ X = cbind(y)
 xtrue = 0*y
 for (i in 1:length(xtrue)){
 
-  if ( (    y[i] <.5 & y[i] >.2 ) ){
+  if ( (    y[i] <.5 & y[i] >.2 ) | (y[i] >1.5 & y[i] <1.8) ){
     xtrue[i] = 0
   }else{
     xtrue[i]= rnorm(1,sd=0.5+ 2*abs(sin(2*pi*y[i])))

@@ -11,7 +11,7 @@ comoR implements covariate moderated FDR methods for high dimensional side infor
 You can install the development version of logisticsusie like so:
 
 ``` r
-devtools::install_github('karltayeb/comoR')
+devtools::install_github('karltayeb/comoR@lean_como')
 ```
 
 ## Example

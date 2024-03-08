@@ -579,8 +579,6 @@ sim_func_cEBMF <- function( N=2000, # number of row
                   input_shape = c(ncol(X_l))) %>%
       layer_dense(units = 64,
                   activation = 'relu' ) %>%
-      layer_dense(units = 64,
-                  activation = 'relu' ) %>%
       layer_dense(units = num_classes,
                   activation = 'softmax')
 
@@ -715,7 +713,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
   rmse_PMD         <- rmse(Y_true, PMD_res$u%*%diag(PMD_res$d)%*%t(PMD_res$v))
   rmse_svd         <- rmse(Y_true, svd_res$u%*%diag(svd_res$d)%*%t(svd_res$v))
   rmse_ssvd        <- rmse(Y_true, ssvd_res$u%*%ssvd_res$d%*%t(ssvd_res$v))
-  rmse_out         <- c( rmse_cEBMF_nnet , rmse_cEBMF_init , rmse_flash)
+  rmse_out         <- c( rmse_cEBMF_nnet ,rmse_flash  , rmse_PMD, rmse_svd, rmse_ssvd)
   names( rmse_out  ) <- c( "cEBMF",
                      "EBMF",
                      "SVD",

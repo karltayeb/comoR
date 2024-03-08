@@ -498,8 +498,8 @@ sim_func_cEBMF <- function( N=2000, # number of row
   }else{
     set.seed(seed)
   }
-  L_l <-  sample (1:20,size=1)
-  L_f <-  sample (1:20,size=1)
+  L_l <-  sample (1:10,size=1)
+  L_f <-  sample (1:10,size=1)
 
 
 
@@ -527,7 +527,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     mix <- c()
     for ( i in 1:N){
       mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[i], samp_prob[i])))
-      lk <- c(lk, mix[i]*rnorm(1,sd=3))
+      lk <- c(lk, mix[i]*rnorm(1,sd=1))
     }
 
 
@@ -537,7 +537,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     for ( j in 1:L){
 
       mix <-c(mix, sample(c(0,1), size=1, prob = c(1- samp_prob[j], samp_prob[j])))
-      fk <- c(fk, mix[j]*rnorm(1,sd=3))
+      fk <- c(fk, mix[j]*rnorm(1,sd=1))
     }
 
     true_l[[k]] <- lk
@@ -588,7 +588,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
                          data= data,
                          param_nnet= param_nnet) # initialize the model from the data
-    fit <- comoR:::fit.como (  fit, data, max_iter = 20 )
+    fit <- comoR:::fit.como (  fit, data, max_iter = max_iter_cEBMF)
 
 
     est <- comoR:::post_mean_sd (fit,data)
@@ -646,7 +646,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
     fit  <- rlang::exec( "data_initialize_como", !!! param_como ,
                          data= data,
                          param_nnet= param_nnet) # initialize the model from the data
-    fit <- comoR:::fit.como (  fit, data, max_iter = 20 )
+    fit <- comoR:::fit.como (  fit, data, max_iter = max_iter_cEBMF)
 
 
     est <- comoR:::post_mean_sd (fit,data)
@@ -680,35 +680,52 @@ sim_func_cEBMF <- function( N=2000, # number of row
   fit_custom <- flash_init(Y_obs, var_type = 2) %>%
     flash_set_verbose(0) %>%
     flash_greedy(
-      Kmax = 2,
+      Kmax = K,
       ebnm_fn = c(cebnm_L, cebnm_F)
     )
 
   f <- flashier::flash(Y_obs)
 
-  fit_custom_init_default <- flash_init(Y_obs, var_type = 2) %>%
-    flash_set_verbose(0) %>%
-    flash_factors_init(f)  %>%
-    flash_greedy(
-      Kmax = 2,
-      ebnm_fn = c(cebnm_L, cebnm_F)
-    )
+
+  library(irlba)
+  library(PMA)
+  ssvd_res = ssvd(Y_obs, k=3)
+  svd_res  = svd(Y_obs)
+
+  rmse = function(x,y){
+    sqrt(mean (x-y)^2)
+  }
+
+  rmse(Y_true, svd_res$u%*%diag(svd_res$d)%*%t(svd_res$v))
+
+
+  cv.out <- PMD.cv(Y_obs, type="standard", sumabss=seq(0.1, 0.6, len=20))
+  PMD_res <- PMD(Y_obs,
+                 type="standard",
+                 sumabs=cv.out$bestsumabs,
+                 K=3, v=cv.out$v.init
+  )
+
+
+  rmse(Y_true ,fitted(f))
+
+  rmse_cEBMF_nnet   <-  rmse(Y_true ,fitted(fit_custom))
+  rmse_flash        <-  rmse(Y_true ,fitted(f))
+
+  rmse_PMD         <- rmse(Y_true, PMD_res$u%*%diag(PMD_res$d)%*%t(PMD_res$v))
+  rmse_svd         <- rmse(Y_true, svd_res$u%*%diag(svd_res$d)%*%t(svd_res$v))
+  rmse_ssvd        <- rmse(Y_true, ssvd_res$u%*%ssvd_res$d%*%t(ssvd_res$v))
+  rmse_out         <- c( rmse_cEBMF_nnet , rmse_cEBMF_init , rmse_flash)
+  names( rmse_out  ) <- c( "cEBMF",
+                     "EBMF",
+                     "SVD",
+                     "SSVD",
+                     "PMD" )
 
 
 
 
-  rmse_cEBMF_nnet   <- sqrt(mean( (Y_true-fitted(fit_custom ))^2))
-  rmse_cEBMF_init   <- sqrt(mean( (Y_true-fitted(fit_custom_init_default ))^2))
-  rmse_flash   <-  sqrt(mean( (Y_true- fitted(f))^2))
-  rmse         <- c( rmse_cEBMF_nnet , rmse_cEBMF_init , rmse_flash)
-  names(rmse ) <- c( "rmse_cEBMF_nnet",
-                     "rmse_cEBMF_nnet_flash_init",
-                     "rmse_flash")
-
-
-
-
-
+  tot_sum_square <-   sum(Y_true^2)
   par <-  c( N,
              L ,
              K ,
@@ -732,8 +749,9 @@ sim_func_cEBMF <- function( N=2000, # number of row
                      "max_iter_como"
  )
 
-  out <- list(rmse      = rmse,
-              par       = par
+  out <- list(rmse      =  rmse_out ,
+              par       = par,
+              tot_sum_square =tot_sum_square
                )
 
 

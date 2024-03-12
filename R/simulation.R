@@ -478,7 +478,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
                             beta0=0,
                             beta1=3,
                             noise_level= 3,
-                            max_iter_cEBMF=20,
+                            max_iter_cEBMF=40,
                             max_iter_como=20,
                             max_class=10,
                             seed,
@@ -688,9 +688,18 @@ sim_func_cEBMF <- function( N=2000, # number of row
   ssvd_res = ssvd(Y_obs, k=3)
   svd_res  = svd(Y_obs)
 
-  rmse = function(x,y){
-    sqrt(mean (x-y)^2)
+  rmse = function(mat1 , mat2){
+
+    squared_diff <- (mat1-  mat2)^2
+
+    # Compute mean of squared differences
+    mean_squared_diff <- mean(squared_diff)
+
+    # Compute RMSE
+    rmse <- sqrt(mean_squared_diff)
+    return (rmse)
   }
+
 
   rmse(Y_true, svd_res$u%*%diag(svd_res$d)%*%t(svd_res$v))
 

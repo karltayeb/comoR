@@ -153,8 +153,23 @@ fit_custom <- flash_init(Z, var_type = 2) %>%
 
 
 
+svd_res  = svd(Z)
+#load a spatial data
+load("C:/Document/Serieux/Travail/Data_analysis_and_papers/spatial_RNA_seq/res_spatial_PCA/run_spatial_DLPFC9.RData")
 
-save(fit_default, fit_custom, Z, L,f , file = "fit_plot_Neurips.RData")
+
+library(SpatialPCA)
+LIBD @normalized_expr =t(Z)
+LIBD @location =X
+LIBD = SpatialPCA_buildKernel(LIBD, kerneltype="gaussian", bandwidthtype="SJ",bandwidth.set.by.user=NULL)
+LIBD = SpatialPCA_EstimateLoading(LIBD,fast=FALSE,SpatialPCnum=20)
+LIBD = SpatialPCA_SpatialPCs(LIBD, fast=FALSE)
+
+
+save(fit_default, fit_custom,LIBD ,svd_res ,Z, L,f , X, file = "fit_plot_Neurips.RData")
+
+
+
 
 df <- data.frame(x=x,y=y, L= fit_custom$L_pm[,1])
 P11 <- ggplot(df, aes ( x,y, col = abs(L)))+
@@ -188,6 +203,36 @@ P12 <- ggplot(df, aes ( x,y, col = abs(L)))+
                              axis.ticks.x=element_blank())
 
 
+df <- data.frame(x=x,y=y, L= svd_res$u[,1] )
+P13 <- ggplot(df, aes ( x,y, col = abs(L)))+
+  geom_point(size=2)+
+  scale_color_continuous(type = "viridis")+
+  geom_hline(yintercept = 0.33)+
+  geom_hline(yintercept = 0.66)+
+  geom_vline(xintercept = 0.66)+
+  geom_vline(xintercept = 0.33)+
+  ylab(" SVD")+xlab(" ")+
+  ggtitle("")+theme_minimal()+theme( axis.text.y=element_blank(),
+
+                                     axis.ticks.y=element_blank(),
+                                     axis.text.x=element_blank(),
+                                     axis.ticks.x=element_blank())
+
+
+df <- data.frame(x=x,y=y, L= LIBD@SpatialPCs[1,] )
+P13 <- ggplot(df, aes ( x,y, col = abs(L)))+
+  geom_point(size=2)+
+  scale_color_continuous(type = "viridis")+
+  geom_hline(yintercept = 0.33)+
+  geom_hline(yintercept = 0.66)+
+  geom_vline(xintercept = 0.66)+
+  geom_vline(xintercept = 0.33)+
+  ylab("Spatial PCA")+xlab(" ")+
+  ggtitle("")+theme_minimal()+theme( axis.text.y=element_blank(),
+
+                                     axis.ticks.y=element_blank(),
+                                     axis.text.x=element_blank(),
+                                     axis.ticks.x=element_blank())
 
 
 df <- data.frame(x=x,y=y, L= fit_custom$L_pm[,2])
@@ -224,6 +269,23 @@ P22 <-ggplot(df, aes ( x,y, col = abs(L)))+
                              axis.ticks.x=element_blank())
 
 
+
+df <- data.frame(x=x,y=y, L=LIBD@SpatialPCs[2,] )
+P23 <- ggplot(df, aes ( x,y, col = abs(L)))+
+  geom_point(size=2)+
+  scale_color_continuous(type = "viridis")+
+  geom_hline(yintercept = 0.33)+
+  geom_hline(yintercept = 0.66)+
+  geom_vline(xintercept = 0.66)+
+  geom_vline(xintercept = 0.33)+
+  ylab("  ")+xlab(" ")+
+  ggtitle("")+theme_minimal()+theme( axis.text.y=element_blank(),
+
+                                     axis.ticks.y=element_blank(),
+                                     axis.text.x=element_blank(),
+                                     axis.ticks.x=element_blank())
+
+
 df <- data.frame(x=x,y=y, L= fit_custom$L_pm[,3])
 P31 <-ggplot(df, aes ( x,y, col = abs(L)))+
   geom_point(size=2)+
@@ -256,42 +318,60 @@ P32 <-ggplot(df, aes ( x,y, col = abs(L)))+
                              axis.ticks.x=element_blank())
 
 
+df <- data.frame(x=x,y=y, L=LIBD@SpatialPCs[3,] )
+P33 <- ggplot(df, aes ( x,y, col = abs(L)))+
+  geom_point(size=2)+
+  scale_color_continuous(type = "viridis")+
+  geom_hline(yintercept = 0.33)+
+  geom_hline(yintercept = 0.66)+
+  geom_vline(xintercept = 0.66)+
+  geom_vline(xintercept = 0.33)+
+  ylab("  ")+xlab(" ")+
+  ggtitle("")+theme_minimal()+theme( axis.text.y=element_blank(),
 
-gridExtra::grid.arrange(P11, P12, P21, P22, P31, P32, ncol=2)
+                                     axis.ticks.y=element_blank(),
+                                     axis.text.x=element_blank(),
+                                     axis.ticks.x=element_blank())
+
+
+
 library(cowplot)
 library(grid)
 legend <- get_legend(
-  P31
+  P31+
+    guides(color = guide_legend(nrow = 1)) +
+    theme(legend.position = "bottom")
 )
 legend1 <- get_legend(
   P1
 )
 
-grid_plot <- ggdraw(xlim=c(0,.9) )+
-              draw_plot(P1+ theme(legend.position = "none")       ,
-            x = 0.125 , y = .5, width = .5, height = .5)+
-  draw_plot(P11 + theme(legend.position = "none"),
-            x = 0, y = 0.25, width = 0.25, height = 0.25) +
 
-  draw_plot(P21 + theme(legend.position = "none"),
-            x = 0.25, y = 0.25, width = 0.25, height = 0.25) +
 
-  draw_plot(P31 + theme(legend.position = "none"),
-            x = 0.5, y = 0.25, width = 0.25, height = 0.25) +
+model =  ggdraw(  )+
+  draw_plot(P1        ,
+            x = 0.  , y = .0 , width = 1, height = .91)
+model
+fit_factor = ggdraw() +
+   draw_plot(P11 + theme(legend.position = "none"), x = 0, y = 0.65, width = 0.3, height = 0.3) +
+   draw_plot(P21 + theme(legend.position = "none"), x = 0.35, y = 0.65, width = 0.3, height = 0.3) +
+   draw_plot(P31 + theme(legend.position = "none"), x = 0.7, y = 0.65, width = 0.3, height = 0.3) +
 
-  draw_plot(P12 + theme(legend.position = "none"),
-            x = 0, y = 0. , width = 0.25, height = 0.25) +
+   draw_plot(P12 + theme(legend.position = "none"), x = 0, y = 0.35, width = 0.3, height = 0.3) +
+   draw_plot(P22 + theme(legend.position = "none"), x = 0.35, y = 0.35, width = 0.3, height = 0.3) +
+   draw_plot(P32 + theme(legend.position = "none"), x = 0.7, y = 0.35, width = 0.3, height = 0.3) +
 
-  draw_plot(P22 + theme(legend.position = "none"),
-            x = 0.25, y = 0. , width = 0.25, height = 0.25) +
+   draw_plot(P13 + theme(legend.position = "none"), x = 0, y = 0.05, width = 0.3, height = 0.3) +
+   draw_plot(P23 + theme(legend.position = "none"), x = 0.35, y = 0.05, width = 0.3, height = 0.3) +
+   draw_plot(P33 + theme(legend.position = "none"), x = 0.7, y = 0.05, width = 0.3, height = 0.3)
+fit_factor
 
-  draw_plot(P32 + theme(legend.position = "none"),
-            x = 0.5, y = 0. , width = 0.25, height = 0.25)+
-  draw_plot(legend, x = 0.7, y = 0.2 , width = 0.25, height = 0.25)+
-  draw_plot(legend1, x = 0.7, y = 0.72 , width = 0.25, height = 0.25)
-grid_plot
-
-ggsave(grid_plot , file="Fig_tilling.pdf",
+ggsave(model , file="Fig_tilling1.pdf",
+       width =21 ,
+       height = 25,
+       units = "cm"
+)
+ggsave(fit_factor , file="Fig_tilling2.pdf",
        width =21 ,
        height = 25,
        units = "cm"
@@ -304,10 +384,7 @@ rmse(c(fitted(fit_default )) ,c(L%*%f))
 rmse(c(fitted(fit_custom )) ,c(L%*%f))
 
 
+rmse(t(LIBD@SpatialPCs) %*%  t(LIBD@W),c(L%*%f))
 
 
-
-
-
-library(SpatialPCA)
-CreateSpatialPCAObject(counts=Z, location=X, n.components=3, n.perm=100, n.cores=1, verbose=TRUE)
+rmse(c(fitted(fit_custom )) ,c(L%*%f))

@@ -485,6 +485,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
                             epoch=50
 ){
 
+
   library(softImpute)
   library(susieR)
   library(mvtnorm)
@@ -493,11 +494,9 @@ sim_func_cEBMF <- function( N=2000, # number of row
   library(comoR)
   library(tensorflow)
   library(keras)
-  if( missing( seed)){
-    set.seed(rpois(lambda = 100,n=1))
-  }else{
-    set.seed(seed)
-  }
+
+
+
   L_l <-  sample (1:10,size=1)
   L_f <-  sample (1:10,size=1)
 
@@ -574,7 +573,7 @@ sim_func_cEBMF <- function( N=2000, # number of row
 
     #define the nnet paramet using Keras syntax
     param_nnet =keras_model_sequential() %>%
-      layer_dense(units = 64,
+      layer_dense(units = 10,
                   activation = 'relu',
                   input_shape = c(ncol(X_l))) %>%
       layer_dense(units = num_classes,
@@ -628,13 +627,9 @@ sim_func_cEBMF <- function( N=2000, # number of row
 
     #define the nnet paramet using Keras syntax
     param_nnet =keras_model_sequential() %>%
-      layer_dense(units = 64,
+      layer_dense(units = 10,
                   activation = 'relu',
                   input_shape = c(ncol(X_f))) %>%
-      layer_dense(units = 64,
-                  activation = 'relu' ) %>%
-      layer_dense(units = 64,
-                  activation = 'relu' ) %>%
       layer_dense(units = num_classes,
                   activation = 'softmax')
 
@@ -722,13 +717,10 @@ sim_func_cEBMF <- function( N=2000, # number of row
   rmse_ssvd        <- rmse(Y_true, ssvd_res$u%*%ssvd_res$d%*%t(ssvd_res$v))
   rmse_out         <- c( rmse_cEBMF_nnet ,rmse_flash  , rmse_PMD, rmse_svd, rmse_ssvd)
   names( rmse_out  ) <- c( "cEBMF",
-                     "EBMF",
-                     "SVD",
-                     "SSVD",
-                     "PMD" )
-
-
-
+                           "EBMF",
+                           "SVD",
+                           "SSVD",
+                           "PMD" )
 
   tot_sum_square <-   sum(Y_true^2)
   par <-  c( N,

@@ -205,6 +205,12 @@ update_model.como <- function(fit, data, update_assignment = T, update_logreg=T,
   # these are the response variable for mn_regression
   if (update_assignment) {
     fit$post_assignment <- compute_posterior_assignment(fit, data)
+    if (sum(is.na(fit$post_assignment) )> 0) {
+      fit$post_assignment <-  matrix (1/K, #some problem happens with keras sometime I dont know why...
+                                      nrow=length(data$betahat),
+                                      ncol = K)
+          }
+
     #data$Y <- fit$post_assignment
     #data$Nk <- logisticsusie:::stick_breaking_N(data$Y)
   }

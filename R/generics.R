@@ -30,11 +30,16 @@ fit_model.default <- function(fit, data, ..., max_iter=100, tol=1e-5){
     fit <- update_model(fit, data, ...)
 
     # Check convergence, assumes fit is tracking elbo
-    if(abs(diff(tail(fit$elbo, 2))) < tol){
-      message('converged')
-      break
+
+    if (length (fit$elbo)>2) {
+        if(abs(diff(tail(fit$elbo, 2))) < tol){
+         message('converged')
+         break
+          }
+       }
     }
-  }
+
+
   timer <- tictoc::toc()
   fit$elapsed_time <- with(timer, toc - tic)
   return(fit)

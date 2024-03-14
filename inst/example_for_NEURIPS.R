@@ -85,7 +85,7 @@ cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
   param_como = list(max_class= 10,
                     mnreg_type="keras",
                     prior    ='mix_norm',
-                    epoch     =20)
+                    epoch     =250)
   data <- comoR:::como_prep_data (betahat=x,
                                   se=s, X=X,
                                   Z =Z )
@@ -166,7 +166,7 @@ LIBD = SpatialPCA_EstimateLoading(LIBD,fast=FALSE,SpatialPCnum=20)
 LIBD = SpatialPCA_SpatialPCs(LIBD, fast=FALSE)
 
 
-save(fit_default, fit_custom,LIBD ,svd_res ,Z, L,f , X, file = "fit_plot_Neurips.RData")
+#save(fit_default, fit_custom,LIBD ,svd_res ,Z, L,f , X, file = "fit_plot_Neurips.RData")
 
 
 
@@ -366,19 +366,19 @@ fit_factor = ggdraw() +
    draw_plot(P33 + theme(legend.position = "none"), x = 0.7, y = 0.05, width = 0.3, height = 0.3)
 fit_factor
 
-ggsave(model , file="Fig_tilling1.pdf",
-       width =21 ,
-       height = 25,
-       units = "cm"
-)
-ggsave(fit_factor , file="Fig_tilling2.pdf",
-       width =21 ,
-       height = 25,
-       units = "cm"
-)
+#ggsave(model , file="Fig_tilling1.pdf",
+#       width =21 ,
+#       height = 25,
+#       units = "cm"
+#)
+#ggsave(fit_factor , file="Fig_tilling2.pdf",
+#       width =21 ,
+#       height = 25,
+#       units = "cm"
+#)
 
 rmse = function(x,y){
-  sqrt(mean (x-y)^2)
+  sqrt(mean( (x-y)^2))
 }
 rmse(c(fitted(fit_default )) ,c(L%*%f))
 rmse(c(fitted(fit_custom )) ,c(L%*%f))

@@ -88,7 +88,7 @@ convolved_logpdf.point <- function(dist, betahat, se) {
   # return(dnorm(betahat, sd=se, log=T))
   sd <- se
   logp <- dnorm(betahat, mean = dist$mu, sd = sd, log = TRUE)
-  logp <- .clamp(logp, 1e2, -1e2)
+  logp <- .clamp(logp, 1e4, -1e4)
   return(logp)
 }
 
@@ -111,7 +111,7 @@ is.normal <- function(x) {
 convolved_logpdf.normal <- function(dist, betahat, se) {
   sd <- sqrt(se^2 + dist$var)
   logp <- dnorm(betahat, mean = dist$mu, sd = sd, log = TRUE)
-  logp <- .clamp(logp, 1e2, -1e2)
+  logp <- .clamp(logp, 1e4, -1e4)
   return(logp)
 }
 
@@ -157,7 +157,7 @@ convolved_logpdf.exp <- function(dist, betahat, se) {
   logp <- log(a) + s^2 * a^2 / 2 - a * (betahat - mu) + lpnormright
 
 
-  logp <- .clamp(logp, 1e3, -1e2)
+  logp <- .clamp(logp, 1e4, -1e4)
 
 
   #if(length(which(logp == -1e2))>0){

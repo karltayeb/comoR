@@ -478,8 +478,8 @@ sim_func_cEBMF <- function( N=2000, # number of row
                             beta0=0,
                             beta1=3,
                             noise_level= 3,
-                            max_iter_cEBMF=40,
-                            max_iter_como=20,
+                            max_iter_cEBMF=10,
+                            max_iter_como=10,
                             max_class=10,
                             seed,
                             epoch=50
@@ -551,8 +551,17 @@ sim_func_cEBMF <- function( N=2000, # number of row
 
   Y_obs <- Y_true+ matrix( rnorm(N*L, sd= noise_level), ncol=L)
 
+  library(nnet)
 
-
+  res_nnet <- comoR:::cEBMF  (Y=Y_obs,
+                              X_l=X_l,
+                              X_f=X_f,
+                              reg_method="nnet",
+                              K=K, init_type = "udv_si",
+                              param_como = list(max_class=max_class,mnreg="mult_reg"),
+                              maxit_como =max_iter_como ,
+                              param_nnet= list(size=3, decay=1.2),
+                              maxit=max_iter_cEBMF)
 
 
   cebnm_L <- function( x,s,g_init=FALSE,fix_g=TRUE, output){
@@ -696,7 +705,6 @@ sim_func_cEBMF <- function( N=2000, # number of row
   }
 
 
-  rmse(Y_true, svd_res$u%*%diag(svd_res$d)%*%t(svd_res$v))
 
 
   cv.out <- PMD.cv(Y_obs, type="standard", sumabss=seq(0.1, 0.6, len=20))
@@ -705,18 +713,19 @@ sim_func_cEBMF <- function( N=2000, # number of row
                  sumabs=cv.out$bestsumabs,
                  K=3, v=cv.out$v.init
   )
+  Y_est_nnet <- Reduce("+", lapply( 1:res_nnet$K, function(k) res_nnet $loading[,k] %*%t(res_nnet $factor[,k] ) ))
 
 
-  rmse(Y_true ,fitted(f))
-
+  rmse_cEBMF_nnet0   <-  rmse(Y_true , Y_est_nnet )
   rmse_cEBMF_nnet   <-  rmse(Y_true ,fitted(fit_custom))
   rmse_flash        <-  rmse(Y_true ,fitted(f))
 
   rmse_PMD         <- rmse(Y_true, PMD_res$u%*%diag(PMD_res$d)%*%t(PMD_res$v))
   rmse_svd         <- rmse(Y_true, svd_res$u%*%diag(svd_res$d)%*%t(svd_res$v))
   rmse_ssvd        <- rmse(Y_true, ssvd_res$u%*%ssvd_res$d%*%t(ssvd_res$v))
-  rmse_out         <- c( rmse_cEBMF_nnet ,rmse_flash  , rmse_PMD, rmse_svd, rmse_ssvd)
-  names( rmse_out  ) <- c( "cEBMF",
+  rmse_out         <- c( rmse_cEBMF_nnet0, rmse_cEBMF_nnet ,rmse_flash  , rmse_PMD, rmse_svd, rmse_ssvd)
+  names( rmse_out  ) <- c("cEBMF0",
+                          "cEBMF",
                            "EBMF",
                            "SVD",
                            "SSVD",

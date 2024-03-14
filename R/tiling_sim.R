@@ -1,17 +1,20 @@
 
-tiling_sim <-  function(noise_level){
+tiling_sim <-  function(noise_level,seed=1){
 
+
+
+  set.seed(seed)
   x <-runif(1000)
   y <-runif(1000)
   X = cbind(x,y)
-  plot (x,y)
+
   library(flashier)
 
   library(keras)
 
   library(tensorflow)
 
-  set.seed(3)#problem fro set.seed(1)
+   #problem fro set.seed(1)
   f <- matrix(NA, nrow = 3, ncol =200)
   for ( i in 1:ncol (f)){
 
@@ -132,7 +135,7 @@ tiling_sim <-  function(noise_level){
 
 
   library(flashier)
-  fit_custom <- flash_init(Z, var_type = 2) %>%
+  fit_custom <- flash_init(Z, var_type = 2 ) %>%
 
     flash_set_verbose(0) %>%
     flash_greedy(

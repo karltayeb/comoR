@@ -204,11 +204,11 @@ custom_loss <- function(y_true, y_pred) {
       log(sum(exp(y_true1) * y_pred1))
     }
   )
-  out <- -sum(case_wise_tt)
-  #out <- out - max(0,out) + log(out -min(out,0)+1 )+1# doing the same thing as below
+   out <- -sum(case_wise_tt)
+
+  #out <- out -tf$math$maximum(0,out) + tf$math$sqrt(out -tf$math$minimum(out,0)+1 )+1# doing the same thing as below
   # but tensorflow do not like logical operation in cus tom loss
-  #out  <- ifelse(out>1, log(out)+1, out)#bend the loss for postive case seems to created problem
-  # when loss is over 900
+
   return(out)
 }
 

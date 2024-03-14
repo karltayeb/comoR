@@ -18,7 +18,7 @@ library(comoR)
 library(nnet)
 library(tensorflow)
 devtools::load_all(".")
-set.seed(1)
+#set.seed(1)
 y <-runif(2000, max=2)
 X = cbind(y)
 xtrue = 0*y
@@ -111,19 +111,19 @@ plot(est$mean, xtrue ,   col =ifelse(xtrue==0, 1,2))
 
 
 
-lol <- ashr::ash(x, s )
+ash_res <- ashr::ash(x, s )
 
  
 
-plot(lol$result$PosteriorMean,
+plot(ash_res$result$PosteriorMean,
      est$mean,  
      col =ifelse(xtrue==0, 3,4),
      main='comparison of ebnm vs cebnm',xlab='ebnm',ylab='cebnm')
 legend('topleft',c('H0','H1'),col=c(3,4),pch=1)
 rmse = function(x,y){
-  sqrt(mean (x-y)^2)
+  sqrt(mean ((x-y)^2))
 }
-rmse(lol$result$PosteriorMean, xtrue)
+rmse(ash_res$result$PosteriorMean, xtrue)
 
 rmse(est$mean, xtrue )
 

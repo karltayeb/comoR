@@ -181,7 +181,7 @@ legend( x=1, y=-1,
 
 
 rmse = function(x,y){
-  sqrt(mean (x-y)^2)
+  sqrt(mean ((x-y))^2)
 }
 rmse(c(fitted(fit_default )) ,c(L%*%f))
 rmse(c(fitted(fit_custom )) ,c(L%*%f))

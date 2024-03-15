@@ -494,7 +494,11 @@ sim_func_cEBMF <- function( N=2000, # number of row
   library(comoR)
   library(tensorflow)
   library(keras)
-
+    if (missing(seed)){
+       set.seed(rpois(1, 10))
+      }else{
+       set.seed(o)
+      }
 
 
   L_l <-  sample (1:10,size=1)

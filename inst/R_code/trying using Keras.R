@@ -124,5 +124,4 @@ history <-model2  %>% fit(
 
 tt1 = predict(model2, x_train2)
 
-plot(tt1[,1], y[-c(1,2)], col =ifelse(y[-c(1,2)]<0.5, 1,2))
 

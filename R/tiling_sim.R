@@ -2,12 +2,13 @@
 tiling_sim <-  function(noise_level,seed=1){
 
 
-
+  max_class=10
+  max_iter_como=10
   set.seed(seed)
   x <-runif(1000)
   y <-runif(1000)
   X = cbind(x,y)
-
+  max_iter_cEBMF=10
   library(flashier)
 
   library(keras)
@@ -55,8 +56,17 @@ tiling_sim <-  function(noise_level,seed=1){
 
   Z = L%*%f + matrix(rnorm(nrow(L)* ncol(f), sd=noise_level), nrow = nrow(L))
 
-
-
+  X_l =X
+  X_f = matrix(rnorm(2* ncol(Z)), ncol = 2)
+  res_nnet <- comoR:::cEBMF  (Y=Z,
+                              X_l=X_l,
+                              X_f=X_f,
+                              reg_method="nnet",
+                              K=3, init_type = "udv_si",
+                              param_como = list(max_class=max_class,mnreg="mult_reg"),
+                              maxit_como =max_iter_como ,
+                              param_nnet= list(size=3, decay=1.2),
+                              maxit=max_iter_cEBMF)
   library(flashier)
 
   fit_default <- flash(Z, greedy_Kmax = 5)
@@ -77,7 +87,7 @@ tiling_sim <-  function(noise_level,seed=1){
     param_como = list(max_class= 10,
                       mnreg_type="keras",
                       prior    ='mix_norm',
-                      epoch     =20)
+                      epoch     =70)
     data <- comoR:::como_prep_data (betahat=x,
                                     se=s, X=X,
                                     Z =Z )
@@ -184,8 +194,9 @@ tiling_sim <-  function(noise_level,seed=1){
 
 
 
+  Y_est_nnet <- Reduce("+", lapply( 1:res_nnet$K, function(k) res_nnet $loading[,k] %*%t(res_nnet $factor[,k] ) ))
 
-
+  rmse_cEBMF0       <- rmse(c(Y_est_nnet)  ,c(L%*%f))
   rmse_flash        <- rmse(c(fitted(fit_default )) ,c(L%*%f))
   rmse_cEBMF_nnet   <- rmse(c(fitted(fit_custom )) ,c(L%*%f))
   rmse_spatial_PCA  <- rmse(t(LIBD@SpatialPCs) %*%  t(LIBD@W),c(L%*%f))
@@ -195,20 +206,19 @@ tiling_sim <-  function(noise_level,seed=1){
   rmse_PMD         <- rmse(c(L%*%f), PMD_res$u%*%diag(PMD_res$d)%*%t(PMD_res$v))
   rmse_svd         <- rmse(c(L%*%f), svd_res$u[,1:3]%*%diag(svd_res$d[ 1:3])%*%t(svd_res$v[,1:3]))
   rmse_ssvd        <- rmse(c(L%*%f), ssvd_res$u%*%ssvd_res$d%*%t(ssvd_res$v))
-  rmse_out         <- c( rmse_cEBMF_nnet ,
+  rmse_out         <- c(rmse_cEBMF0 , rmse_cEBMF_nnet ,
                          rmse_flash  ,
                          rmse_spatial_PCA,
                          rmse_PMD,
                          rmse_svd,
                          rmse_ssvd)
-  names( rmse_out  ) <- c( "cEBMF",
+  names( rmse_out  ) <- c("cEBMF0", "cEBMF",
                            "EBMF",
                            "Spatial PCA",
                            "SVD",
                            "SSVD",
                            "PMD" )
-  rmse_out
-
+  cluster_cEBMF0       = walktrap_clustering(clusternum=3,latent_dat=t(res_nnet $loading),knearest=70 )
   cluster_spatial_PCA = walktrap_clustering(clusternum=3,latent_dat=  LIBD@SpatialPCs,knearest=70 )
   cluster_cEBMF       = walktrap_clustering(clusternum=3,latent_dat=t(fit_custom$L_pm),knearest=70 )
   cluster_flash       = walktrap_clustering(clusternum=3,latent_dat=t( fit_default$L_pm ),knearest=70 )
@@ -223,15 +233,17 @@ tiling_sim <-  function(noise_level,seed=1){
   ARI_svd         = ARI(factor,cluster_svd)
   ARI_ssvd        = ARI(factor,cluster_ssvd)
   ARI_cEBMF       = ARI(factor,cluster_cEBMF)
+  ARI_cEBMF0       = ARI(factor,cluster_cEBMF0)
 
-
-  ARI_out = c( ARI_cEBMF,
+  ARI_out = c(ARI_cEBMF0,
+              ARI_cEBMF,
                ARI_flash,
                ARI_spatial_PCA,
                ARI_PMD,
                ARI_svd,
                ARI_ssvd)
-  names( ARI_out  ) <- c( "cEBMF",
+  names( ARI_out  ) <- c( "cEBMF0",
+                          "cEBMF",
                           "EBMF",
                           "Spatial PCA",
                           "SVD",

@@ -87,7 +87,7 @@ tiling_sim <-  function(noise_level,seed=1){
     param_como = list(max_class= 10,
                       mnreg_type="keras",
                       prior    ='mix_norm',
-                      epoch     =70)
+                      epoch     =150)
     data <- comoR:::como_prep_data (betahat=x,
                                     se=s, X=X,
                                     Z =Z )
